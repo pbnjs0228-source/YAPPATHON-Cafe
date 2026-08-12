@@ -88,6 +88,7 @@
   .topbar .logo-word{ font-weight:800; font-size:15.5px; letter-spacing:-0.01em; }
   .topbar .sub-word{ font-weight:500; font-size:13px; color:var(--text-muted); margin-left:2px; }
   .topbar-spacer{ flex:1; }
+  .back-to-chat{ text-decoration:none; display:inline-flex; align-items:center; padding:7px 14px; font-size:12.5px; margin-right:12px; }
   .who{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); }
   .who img{ width:22px; height:22px; border-radius:50%; object-fit:cover; }
   .who .role-crown{ color:var(--accent); font-size:11px; }
@@ -189,6 +190,7 @@
   </span>
   <span class="logo-word">Yappathon</span><span class="sub-word">Voice Cafe</span>
   <div class="topbar-spacer"></div>
+  <a class="btn back-to-chat" href="https://pbnjs0228-source.github.io/YAPPATHON/" target="_blank" rel="noopener noreferrer">← Back to Chat</a>
   <div class="who hidden" id="whoBar">
     <img id="whoPhoto" alt="">
     <span id="whoName"></span>
@@ -601,7 +603,7 @@ function seatMarkup(uid){
     <div class="avatar-wrap ${speaking?'speaking':''}">
       <div class="avatar"><img src="${avatarSrc(uid, d.name, d.photo, 68)}" alt=""></div>
     </div>
-    <div class="name">${d.name || 'Guest'}${d.role==='admin' ? ' <span class="role-crown">♛</span>' : ''}${isSelf?' (you)':''}</div>
+    <div class="name">${d.name || 'Guest'}${d.role==='admin' ? ' <span class="role-crown">♛</span>' : ''}</div>
     ${isSelf && muted ? '<div class="mute-badge">muted</div>' : `<div class="tag">${isSelf?'you':'seated'}</div>`}
   `;
 }
