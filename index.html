@@ -1,287 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YAPPATHON Voice Cafe</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yappathon — Voice Cafe</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23FF7A33'/%3E%3Cpath d='M14 20C14 16.13 17.13 13 21 13H43C46.87 13 50 16.13 50 20V34C50 37.87 46.87 41 43 41H26L18 48V41H21C17.13 41 14 37.87 14 34V20Z' fill='white'/%3E%3Ccircle cx='23' cy='27' r='3' fill='%23FF7A33'/%3E%3Ccircle cx='32' cy='27' r='3' fill='%23FF7A33'/%3E%3Ccircle cx='41' cy='27' r='3' fill='%23FF7A33'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ============================================================
-   YAPPATHON VOICE CAFE
-   ============================================================ */
-   /* ============================================================
-   YAPPATHON VOICE CAFE
-   ============================================================ */
-:root{
-  --coffee-black:#1c130d;
-  --espresso:#2c1c12;
-  --crema:#f2e3c8;
-  --milk:#fbf4e6;
-  --cinnamon:#b8622e;
-  --cinnamon-bright:#d97f42;
-  --sage:#7f9575;
-  --gold:#e0ac4f;
-  --line: rgba(242,227,200,0.14);
-  --shadow: 0 18px 40px -12px rgba(0,0,0,0.55);
-}
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;height:100%;}
-body{
-  font-family:'DM Sans', sans-serif;
-  background:
-    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(216,143,66,0.12), transparent 60%),
-    radial-gradient(ellipse 700px 600px at 100% 10%, rgba(127,149,117,0.10), transparent 55%),
-    var(--coffee-black);
-  color:var(--crema);
-  min-height:100vh;
-  overflow-x:hidden;
-}
-h1,h2,h3,.display{font-family:'Fraunces', serif;}
-::selection{background:var(--cinnamon);color:var(--milk);}
-button{font-family:inherit;cursor:pointer;}
-input{font-family:inherit;}
-::-webkit-scrollbar{width:10px;}
-::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;}
+  :root{
+    --bg: #14151a; --bg-alt: #1b1c22; --bg-elevated: #23242c; --bg-input:#2a2b34;
+    --border: #2e2f38; --text: #ECEDEF; --text-muted: #9498A3;
+    --accent: #FF7A33; --accent-hover:#FF8F52; --accent-contrast: #14151a; --accent-soft: rgba(255,122,51,0.15);
+    --online: #3BA55D; --danger: #ED4245; --shadow: rgba(0,0,0,0.45);
+    --glow-a: rgba(255,122,51,.16); --glow-b: rgba(255,190,90,.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,h3, .brand, .logo-word { font-family: 'Sora', sans-serif; }
+  ::selection { background: var(--accent-soft); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  button { font-family: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ---------- steam animation, used as ambient + speaking indicator ---------- */
-@keyframes steam{
-  0%{ transform:translateY(0) scaleX(1); opacity:0; }
-  15%{ opacity:.55; }
-  50%{ transform:translateY(-14px) scaleX(1.4); opacity:.35;}
-  100%{ transform:translateY(-30px) scaleX(1.8); opacity:0;}
-}
-@keyframes speakRing{
-  0%,100%{ box-shadow:0 0 0 0 rgba(224,172,79,0.55);}
-  50%{ box-shadow:0 0 0 8px rgba(224,172,79,0);}
-}
-@keyframes fadeUp{
-  from{opacity:0; transform:translateY(10px);}
-  to{opacity:1; transform:translateY(0);}
-}
-@keyframes cardIn{
-  from{opacity:0; transform:translateY(16px) scale(.98);}
-  to{opacity:1; transform:translateY(0) scale(1);}
-}
+  @keyframes bgDrift { 0%,100%{background-position:15% 20%, 85% 80%;} 50%{background-position:20% 26%, 80% 74%;} }
+  @keyframes cardIn { from{opacity:0; transform:translateY(14px) scale(.98);} to{opacity:1; transform:translateY(0) scale(1);} }
+  @keyframes fadeSlideUp { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes scaleIn { from{opacity:0; transform:scale(.92);} to{opacity:1; transform:scale(1);} }
+  @keyframes pulseRing { 0%{box-shadow:0 0 0 0 rgba(59,165,93,.55);} 70%{box-shadow:0 0 0 6px rgba(59,165,93,0);} 100%{box-shadow:0 0 0 0 rgba(59,165,93,0);} }
+  @keyframes speakPulse { 0%{box-shadow:0 0 0 0 var(--accent-soft);} 70%{box-shadow:0 0 0 8px rgba(255,122,51,0);} 100%{box-shadow:0 0 0 0 rgba(255,122,51,0);} }
+  @keyframes logoGlow { 0%,100%{filter:drop-shadow(0 0 0px var(--accent));} 50%{filter:drop-shadow(0 0 6px var(--accent));} }
+  @keyframes toastIn { from{opacity:0; transform:translateX(24px) scale(.96);} to{opacity:1; transform:translateX(0) scale(1);} }
+  @media (prefers-reduced-motion: reduce){ *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
 
-/* ---------- top bar ---------- */
-.topbar{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:18px 28px; border-bottom:1px solid var(--line);
-  position:sticky; top:0; z-index:20;
-  background:rgba(28,19,13,0.86); backdrop-filter:blur(10px);
-}
-.brand{display:flex; align-items:center; gap:12px;}
-.brand .cup{font-size:22px;}
-.brand-text .eyebrow{
-  font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--sage); font-weight:600;
-}
-.brand-text h1{margin:0; font-size:22px; font-weight:600; letter-spacing:.01em;}
-.who{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--crema); opacity:.85;}
-.who .dot{width:8px;height:8px;border-radius:50%;background:var(--sage);}
+  .bubble-mark svg{ display:block; }
+  .hidden{ display:none !important; }
 
-/* ---------- screens ---------- */
-.screen{max-width:1040px; margin:0 auto; padding:48px 24px 80px;}
-.hidden{display:none !important;}
+  /* ---------- entry screen (mirrors Yappathon's auth-card) ---------- */
+  #entry-screen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    background:
+      radial-gradient(circle at 15% 20%, var(--accent-soft), transparent 45%),
+      radial-gradient(circle at 85% 80%, var(--accent-soft), transparent 45%),
+      var(--bg);
+    background-size:200% 200%, 200% 200%, auto;
+    animation: bgDrift 10s ease-in-out infinite;
+  }
+  .entry-card{
+    width:100%; max-width:400px; background:var(--bg-alt); border:1px solid var(--border);
+    border-radius:20px; padding:40px 32px; text-align:center; box-shadow:0 20px 60px var(--shadow);
+    animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
+  }
+  .entry-card .bubble-mark{ color:var(--accent); margin-bottom:14px; }
+  .entry-card .bubble-mark svg{ animation: logoGlow 3.2s ease-in-out infinite; margin:0 auto; }
+  .entry-card h1{ font-size:24px; margin:0 0 6px; letter-spacing:-0.02em; }
+  .entry-card p.tag{ color:var(--text-muted); font-size:13.5px; margin:0 0 24px; line-height:1.5; }
+  #guest-block input{
+    width:100%; background:var(--bg-input); border:1px solid var(--border); color:var(--text);
+    padding:11px 13px; border-radius:10px; font-size:14px; font-family:inherit; outline:none;
+    transition:border-color .15s ease;
+  }
+  #guest-block input:focus{ border-color:var(--accent); }
+  .btn{
+    padding:10px 18px; border-radius:10px; font-size:13.5px; font-weight:700; border:1px solid var(--border);
+    background:none; color:var(--text); transition:background .15s ease, transform .1s ease, box-shadow .15s ease;
+  }
+  .btn:hover{ background:var(--bg-input); transform:translateY(-1px); }
+  .btn:active{ transform:translateY(0) scale(.97); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-contrast); width:100%; margin-top:12px; padding:12px 18px; }
+  .btn.primary:hover{ background:var(--accent-hover); box-shadow:0 6px 16px var(--accent-soft); }
+  .mic-note{ margin-top:14px; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
 
-/* ---------- name entry ---------- */
-.entry-wrap{
-  min-height:calc(100vh - 70px); display:flex; align-items:center; justify-content:center;
-  padding:24px;
-}
-.entry-card{
-  width:100%; max-width:420px; text-align:center;
-  animation:fadeUp .6s ease both;
-}
-.entry-card .cup-big{font-size:48px; margin-bottom:6px; display:inline-block;}
-.entry-card h1{font-size:34px; margin:6px 0 6px; font-weight:600;}
-.entry-card p.sub{color:var(--crema); opacity:.65; font-size:14.5px; margin:0 0 28px; line-height:1.5;}
-.entry-card input{
-  width:100%; padding:15px 16px; border-radius:12px; border:1px solid var(--line);
-  background:rgba(242,227,200,0.05); color:var(--milk); font-size:15px; outline:none;
-  transition:border-color .2s, background .2s;
-}
-.entry-card input:focus{border-color:var(--cinnamon-bright); background:rgba(242,227,200,0.08);}
-.entry-card button.primary{
-  margin-top:14px; width:100%; padding:15px; border:none; border-radius:12px;
-  background:linear-gradient(135deg, var(--cinnamon-bright), var(--cinnamon));
-  color:var(--milk); font-weight:600; font-size:15px; letter-spacing:.01em;
-  box-shadow:var(--shadow);
-  transition:transform .15s ease, filter .15s ease;
-}
-.entry-card button.primary:hover{filter:brightness(1.08); transform:translateY(-1px);}
-.entry-card button.primary:disabled{opacity:.5; cursor:not-allowed; transform:none;}
-.mic-note{margin-top:16px; font-size:12.5px; color:var(--crema); opacity:.5;}
+  /* ---------- top bar ---------- */
+  .topbar{
+    height:56px; border-bottom:1px solid var(--border); background:color-mix(in srgb, var(--bg) 84%, transparent);
+    display:flex; align-items:center; padding:0 18px; gap:10px; backdrop-filter:blur(10px);
+    position:sticky; top:0; z-index:20;
+  }
+  .topbar .bubble-mark{ color:var(--accent); width:20px; height:20px; flex-shrink:0; }
+  .topbar .logo-word{ font-weight:800; font-size:15.5px; letter-spacing:-0.01em; }
+  .topbar .sub-word{ font-weight:500; font-size:13px; color:var(--text-muted); margin-left:2px; }
+  .topbar-spacer{ flex:1; }
+  .who{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); }
+  .who img{ width:22px; height:22px; border-radius:50%; object-fit:cover; }
+  .who .role-crown{ color:var(--accent); font-size:11px; }
 
-/* ---------- table grid (menu board) ---------- */
-.menu-heading{margin-bottom:34px;}
-.menu-heading .eyebrow{
-  font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); font-weight:600;
-}
-.menu-heading h2{font-size:32px; margin:6px 0 8px; font-weight:600;}
-.menu-heading p{color:var(--crema); opacity:.6; font-size:14.5px; max-width:520px; line-height:1.55; margin:0;}
+  /* ---------- screens ---------- */
+  .screen{ max-width:1040px; margin:0 auto; padding:40px 24px 80px; }
 
-.table-grid{
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:18px;
-}
-.table-card{
-  position:relative; border:1px solid var(--line); border-radius:16px; padding:22px 20px 20px;
-  background:linear-gradient(160deg, rgba(242,227,200,0.045), rgba(242,227,200,0.015));
-  animation:cardIn .5s ease both;
-  transition:transform .18s ease, border-color .18s ease, background .18s ease;
-}
-.table-card:hover{transform:translateY(-3px); border-color:rgba(224,172,79,0.4);}
-.table-card .icon{font-size:26px; margin-bottom:10px; display:block;}
-.table-card h3{margin:0 0 4px; font-size:18px; font-weight:600;}
-.table-card .desc{font-size:12.5px; color:var(--crema); opacity:.55; margin:0 0 16px; line-height:1.5; min-height:32px;}
-.table-card .occ{
-  display:flex; align-items:center; gap:6px; font-size:12px; color:var(--sage); font-weight:600;
-  margin-bottom:14px;
-}
-.table-card .seats-preview{display:flex; gap:-6px; margin-bottom:14px; min-height:26px; flex-wrap:wrap;}
-.seat-chip{
-  width:26px; height:26px; border-radius:50%; background:var(--cinnamon);
-  display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
-  margin-right:-8px; border:2px solid var(--espresso); color:var(--milk);
-}
-.table-card button.sit{
-  width:100%; padding:10px; border-radius:10px; border:1px solid rgba(224,172,79,0.4);
-  background:rgba(224,172,79,0.08); color:var(--gold); font-weight:600; font-size:13.5px;
-  transition:background .15s ease, color .15s ease;
-}
-.table-card button.sit:hover{background:var(--cinnamon-bright); color:var(--milk); border-color:transparent;}
-.table-card.full button.sit{opacity:.4; cursor:not-allowed;}
+  /* ---------- section label (mirrors Yappathon sidebar section-label) ---------- */
+  .section-label{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); font-weight:700; margin-bottom:6px; }
+  .menu-heading h2{ font-size:26px; margin:6px 0 8px; font-weight:700; letter-spacing:-0.01em; }
+  .menu-heading p{ color:var(--text-muted); font-size:14px; max-width:520px; line-height:1.55; margin:0 0 30px; }
 
-/* ---------- in-table view ---------- */
-.table-room{animation:fadeUp .4s ease both;}
-.room-top{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:12px;}
-.room-title{display:flex; align-items:center; gap:12px;}
-.room-title .icon{font-size:28px;}
-.room-title h2{margin:0; font-size:26px; font-weight:600;}
-.leave-btn{
-  padding:10px 18px; border-radius:10px; border:1px solid rgba(220,90,70,0.4);
-  background:rgba(220,90,70,0.08); color:#e88a78; font-weight:600; font-size:13.5px;
-}
-.leave-btn:hover{background:#c3543f; color:var(--milk);}
+  /* ---------- table grid ---------- */
+  .table-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px; }
+  .table-card{
+    position:relative; border:1px solid var(--border); border-radius:16px; padding:20px;
+    background:var(--bg-alt); animation:cardIn .45s cubic-bezier(.22,1,.36,1) both;
+    transition:transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .table-card:hover{ transform:translateY(-2px); border-color:var(--accent); background:var(--bg-elevated); }
+  .table-card .icon{ font-size:24px; display:block; margin-bottom:10px; }
+  .table-card h3{ margin:0 0 4px; font-size:16.5px; font-weight:700; }
+  .table-card .desc{ font-size:12.5px; color:var(--text-muted); margin:0 0 14px; line-height:1.5; min-height:32px; }
+  .table-card .occ{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--online); font-weight:700; margin-bottom:12px; font-family:'JetBrains Mono', monospace; }
+  .table-card .seats-preview{ display:flex; margin-bottom:14px; min-height:24px; flex-wrap:wrap; }
+  .seat-chip{ width:24px; height:24px; border-radius:50%; margin-right:-7px; border:2px solid var(--bg-alt); overflow:hidden; flex-shrink:0; }
+  .seat-chip img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .table-card button.sit{ width:100%; }
+  .table-card.full button.sit{ opacity:.45; cursor:not-allowed; }
 
-.seats-area{
-  margin-top:28px; display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:20px;
-  padding:28px; border-radius:20px; border:1px solid var(--line);
-  background:radial-gradient(ellipse at center, rgba(184,98,46,0.07), transparent 70%);
-  min-height:220px;
-}
-.seat{
-  display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center;
-  animation:cardIn .4s ease both;
-}
-.avatar-wrap{position:relative; width:74px; height:74px;}
-.avatar{
-  width:74px; height:74px; border-radius:50%;
-  background:linear-gradient(135deg, var(--cinnamon-bright), var(--cinnamon));
-  display:flex; align-items:center; justify-content:center;
-  font-size:24px; font-weight:700; color:var(--milk);
-  border:2px solid var(--espresso);
-}
-.avatar.self{background:linear-gradient(135deg, var(--sage), #5f7256);}
-.avatar-wrap.speaking .avatar{animation:speakRing 1.1s ease-in-out infinite;}
-.steam{
-  position:absolute; top:-14px; left:50%; transform:translateX(-50%);
-  width:20px; height:20px; pointer-events:none;
-}
-.steam span{
-  position:absolute; bottom:0; width:4px; height:14px; border-radius:4px;
-  background:rgba(242,227,200,0.5);
-}
-.avatar-wrap.speaking .steam span:nth-child(1){left:2px; animation:steam 1.4s ease-in-out infinite;}
-.avatar-wrap.speaking .steam span:nth-child(2){left:9px; animation:steam 1.4s ease-in-out infinite .3s;}
-.avatar-wrap.speaking .steam span:nth-child(3){left:16px; animation:steam 1.4s ease-in-out infinite .6s;}
-.seat .name{font-size:13.5px; font-weight:600; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-.seat .tag{font-size:10.5px; color:var(--crema); opacity:.5;}
-.mute-badge{font-size:10px; color:#e88a78;}
+  /* ---------- in-table room ---------- */
+  .table-room{ animation:fadeSlideUp .35s cubic-bezier(.22,1,.36,1) both; }
+  .room-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:12px; }
+  .room-title{ display:flex; align-items:center; gap:12px; }
+  .room-title .icon{ font-size:26px; }
+  .room-title h2{ margin:0; font-size:22px; font-weight:700; }
+  .leave-link{ color:var(--text-muted); background:none; border:none; font-size:13px; font-weight:600; padding:8px 4px; }
+  .leave-link:hover{ color:var(--text); }
 
-.empty-seat{
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
-  opacity:.3; font-size:12px;
-}
-.empty-seat .ring{width:74px; height:74px; border-radius:50%; border:2px dashed var(--line);}
+  .seats-area{
+    margin-top:26px; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:18px;
+    padding:26px; border-radius:18px; border:1px solid var(--border); background:var(--bg-alt);
+    min-height:200px; position:relative; overflow:hidden;
+  }
+  .seats-area::before{
+    content:""; position:absolute; inset:-30%; z-index:0; pointer-events:none; border-radius:50%; filter:blur(70px);
+    background:radial-gradient(circle at 25% 25%, var(--glow-a), transparent 40%), radial-gradient(circle at 78% 72%, var(--glow-b), transparent 34%);
+    opacity:.8;
+  }
+  .seat{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; animation:cardIn .35s ease both; }
+  .avatar-wrap{ position:relative; width:68px; height:68px; }
+  .avatar{ width:68px; height:68px; border-radius:50%; display:block; overflow:hidden; border:2px solid var(--bg-alt); background:var(--accent); }
+  .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .avatar-wrap.speaking .avatar{ animation:speakPulse 1.1s ease-in-out infinite; border-color:var(--accent); }
+  .seat .name{ font-size:13px; font-weight:600; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:flex; align-items:center; gap:3px; justify-content:center; }
+  .seat .name .role-crown{ color:var(--accent); font-size:10.5px; }
+  .seat .tag{ font-size:10.5px; color:var(--text-muted); font-family:'JetBrains Mono', monospace; }
+  .mute-badge{ font-size:10px; color:var(--danger); font-weight:700; }
 
-/* ---------- controls dock ---------- */
-.dock{
-  position:sticky; bottom:24px; margin-top:34px;
-  display:flex; align-items:center; justify-content:center; gap:14px;
-  padding:14px 20px; border-radius:999px; border:1px solid var(--line);
-  background:rgba(28,19,13,0.92); backdrop-filter:blur(12px); box-shadow:var(--shadow);
-  width:fit-content; margin-left:auto; margin-right:auto;
-}
-.dock button{
-  width:50px; height:50px; border-radius:50%; border:none; font-size:19px;
-  display:flex; align-items:center; justify-content:center;
-  background:rgba(242,227,200,0.08); color:var(--crema);
-  transition:background .15s ease, transform .1s ease;
-}
-.dock button:hover{transform:scale(1.06);}
-.dock button.mute-on{background:#c3543f; color:var(--milk);}
-.dock .status{font-size:12.5px; color:var(--crema); opacity:.6; padding:0 6px; min-width:120px; text-align:center;}
+  /* ---------- dock controls (mirrors Yappathon .voice-controls / .icon-btn) ---------- */
+  .dock{
+    position:sticky; bottom:24px; margin-top:30px;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    padding:10px 14px; border-radius:999px; border:1px solid var(--border);
+    background:color-mix(in srgb, var(--bg-elevated) 92%, transparent); backdrop-filter:blur(12px);
+    box-shadow:0 18px 55px var(--shadow); width:fit-content; margin-left:auto; margin-right:auto;
+  }
+  .dock button{
+    display:inline-flex; align-items:center; gap:7px; border:1px solid var(--border); background:var(--bg-input);
+    color:var(--text); border-radius:10px; padding:9px 15px; font-size:12.5px; font-weight:700;
+    transition:background .15s ease, border-color .15s ease, color .15s ease;
+  }
+  .dock button:hover{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+  .dock button.is-muted{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+  .dock button.leave-btn{ background:var(--danger); border-color:var(--danger); color:#fff; }
+  .dock button.leave-btn:hover{ filter:brightness(1.08); color:#fff; }
+  .dock .status{ font-size:11.5px; color:var(--text-muted); padding:0 6px; min-width:100px; text-align:center; font-family:'JetBrains Mono', monospace; }
 
-/* ---------- toast ---------- */
-.toast-wrap{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:100; display:flex; flex-direction:column; gap:8px; align-items:center;}
-.toast{
-  padding:11px 20px; border-radius:10px; background:var(--espresso); border:1px solid var(--line);
-  font-size:13.5px; color:var(--milk); box-shadow:var(--shadow);
-  animation:toastIn .25s ease both;
-}
-@keyframes toastIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+  /* ---------- toasts (mirrors Yappathon .toast) ---------- */
+  .toasts{ position:fixed; bottom:18px; right:18px; display:flex; flex-direction:column; gap:8px; z-index:300; }
+  .toast{
+    background:var(--bg-elevated); border:1px solid var(--border); border-left:3px solid var(--accent);
+    padding:10px 14px; border-radius:8px; font-size:13px; box-shadow:0 10px 30px var(--shadow);
+    max-width:280px; animation:toastIn .3s cubic-bezier(.22,1,.36,1) both;
+  }
 
-@media(max-width:560px){
-  .topbar{padding:14px 16px;}
-  .screen{padding:28px 16px 70px;}
-  .brand-text h1{font-size:18px;}
-}
+  @media(max-width:560px){
+    .topbar{ padding:0 14px; }
+    .screen{ padding:26px 16px 70px; }
+    .entry-card{ padding:32px 24px; }
+  }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand">
-    <span class="cup">☕</span>
-    <div class="brand-text">
-      <div class="eyebrow">Yappathon</div>
-      <h1>Voice Cafe</h1>
-    </div>
-  </div>
+  <span class="bubble-mark">
+    <svg width="20" height="20" viewBox="0 0 64 64" fill="none"><path d="M8 16C8 11.58 11.58 8 16 8H48C52.42 8 56 11.58 56 16V36C56 40.42 52.42 44 48 44H26L14 54V44H16C11.58 44 8 40.42 8 36V16Z" fill="currentColor"/><circle cx="21" cy="26" r="3.4" fill="var(--bg-alt)"/><circle cx="32" cy="26" r="3.4" fill="var(--bg-alt)"/><circle cx="43" cy="26" r="3.4" fill="var(--bg-alt)"/></svg>
+  </span>
+  <span class="logo-word">Yappathon</span><span class="sub-word">Voice Cafe</span>
+  <div class="topbar-spacer"></div>
   <div class="who hidden" id="whoBar">
-    <span class="dot"></span>
+    <img id="whoPhoto" alt="">
     <span id="whoName"></span>
+    <span class="role-crown hidden" id="whoCrown">♛</span>
   </div>
 </div>
 
 <!-- ENTRY SCREEN -->
-<div class="entry-wrap" id="entryScreen">
+<div id="entry-screen">
   <div class="entry-card">
-    <span class="cup-big" id="entryCup">☕</span>
+    <span class="bubble-mark">
+      <svg width="44" height="44" viewBox="0 0 64 64" fill="none"><path d="M8 16C8 11.58 11.58 8 16 8H48C52.42 8 56 11.58 56 16V36C56 40.42 52.42 44 48 44H26L14 54V44H16C11.58 44 8 40.42 8 36V16Z" fill="currentColor"/><circle cx="21" cy="26" r="3.4" fill="var(--bg-alt)"/><circle cx="32" cy="26" r="3.4" fill="var(--bg-alt)"/><circle cx="43" cy="26" r="3.4" fill="var(--bg-alt)"/></svg>
+    </span>
     <h1 id="entryHeading">Checking for your Yappathon session…</h1>
-    <p class="sub" id="entrySub">If you're already signed into Yappathon in this browser, we'll seat you automatically.</p>
+    <p class="tag" id="entrySub">If you're already signed into Yappathon in this browser, we'll seat you automatically.</p>
 
-    <div id="guestBlock" class="hidden">
+    <div id="guest-block" class="hidden">
       <input id="nameInput" type="text" placeholder="What should we call you?" maxlength="24" autocomplete="off">
-      <button class="primary" id="enterBtn" disabled>Join as guest</button>
-      <div class="mic-note">Not signed into Yappathon? You can still join as a guest — we'll ask for microphone access once you sit at a table.</div>
+      <button class="btn primary" id="enterBtn" disabled>Join as guest</button>
+      <div class="mic-note">Not signed into Yappathon? You can still join as a guest.</div>
     </div>
   </div>
 </div>
 
-<!-- TABLE LIST SCREEN -->
+<!-- TABLE LIST -->
 <div class="screen hidden" id="lobbyScreen">
   <div class="menu-heading">
-    <div class="eyebrow">Today's seating</div>
+    <div class="section-label">Today's seating</div>
     <h2>Pick a table</h2>
-    <p>Every table is a live voice room. Sit down to open your mic — leave any time, no goodbyes needed.</p>
+    <p>Every table is a live voice room. Sit down to open your mic — leave any time.</p>
   </div>
   <div class="table-grid" id="tableGrid"></div>
 </div>
 
-<!-- IN-ROOM SCREEN -->
+<!-- IN-ROOM -->
 <div class="screen hidden" id="roomScreen">
   <div class="table-room">
     <div class="room-top">
@@ -289,31 +231,30 @@ input{font-family:inherit;}
         <span class="icon" id="roomIcon">☕</span>
         <h2 id="roomName">Table</h2>
       </div>
-      <button class="leave-btn" id="leaveBtn">← Back to the room</button>
+      <button class="leave-link" id="leaveBtn">← Back to tables</button>
     </div>
     <div class="seats-area" id="seatsArea"></div>
     <div class="dock">
-      <button id="muteBtn" title="Mute / unmute">🎤</button>
+      <button id="muteBtn">🎙️ <span id="muteLabel">Mute</span></button>
       <span class="status" id="dockStatus">Connecting…</span>
-      <button id="leaveBtn2" title="Leave table">✕</button>
+      <button class="leave-btn" id="leaveBtn2">☎ Leave</button>
     </div>
   </div>
 </div>
 
-<div class="toast-wrap" id="toastWrap"></div>
+<div class="toasts" id="toastWrap"></div>
 
-<!-- ============================================================
-     Firebase (compat SDK — matches Yappathon's single-file setup)
-     ============================================================ -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script>
-/* ============================================================
-   FIREBASE CONFIG — paste your Yappathon project's config here.
-   (Same project as Yappathon is fine — this app uses its own
-   top-level collection "voiceCafe" so it won't touch your chat data.)
-   ============================================================ */
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInAnonymously
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* Same Firebase project as Yappathon — Auth session persists per browser,
+   so if you're already signed in there, this app picks it up automatically. */
 const firebaseConfig = {
   apiKey: "AIzaSyD4rfKO1U_LAxKyrIrQuRXeI1saokMInhA",
   authDomain: "orangefox-ce8b1.firebaseapp.com",
@@ -324,36 +265,10 @@ const firebaseConfig = {
   measurementId: "G-LLB6S2MVB5"
 };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
 
-/* ============================================================
-   REQUIRED FIRESTORE RULES (add alongside your existing Yappathon
-   rules — this app only touches the top-level "voiceCafe" collection):
-
-   match /voiceCafe/{tableId} {
-     match /seats/{uid} {
-       allow read: if request.auth != null;
-       allow write: if request.auth != null && request.auth.uid == uid;
-     }
-     match /signals/{pairId} {
-       allow read, write: if request.auth != null;
-     }
-   }
-
-   This app also READS your existing /users/{uid} docs to auto-pull the
-   signed-in person's name/avatar. If Yappathon's rules already let a
-   logged-in user read other users' profiles (needed for showing names
-   in chat), nothing else is required. If not, add:
-
-   match /users/{uid} {
-     allow read: if request.auth != null;
-   }
-   ============================================================ */
-
-// STUN servers for WebRTC NAT traversal (no TURN — works on most
-// networks but very strict corporate/mobile NATs may fail to connect)
 const ICE_SERVERS = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
@@ -370,48 +285,64 @@ const TABLES = [
   { id:"study-table",   name:"Study Table",    icon:"📖", desc:"Low key, background chatter welcome.", max:6 },
 ];
 
-let myName = "";
-let myUid = null;
-let myPhoto = null;
-let currentTable = null;
-let localStream = null;
-let muted = false;
-const peers = {};        // uid -> RTCPeerConnection
-const remoteAudioEls = {}; // uid -> <audio>
-const unsubs = [];       // active firestore listeners to tear down on leave
-let seatsCache = {};      // uid -> {name}
-let speakingState = {};   // uid -> bool
-
+const $ = id => document.getElementById(id);
 function toast(msg){
   const el = document.createElement('div');
   el.className = 'toast';
   el.textContent = msg;
-  document.getElementById('toastWrap').appendChild(el);
-  setTimeout(()=>el.remove(), 3200);
+  $('toastWrap').appendChild(el);
+  setTimeout(()=>el.remove(), 3600);
+}
+
+/* ---------------- avatar rendering — matches Yappathon's renderAvatar exactly,
+   so a fallback avatar for the same uid looks identical in both apps. ---------------- */
+function hashHue(str){
+  let h = 0;
+  for (let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h);
+  return Math.abs(h) % 360;
+}
+function initials(name){
+  return (name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+function avatarSrc(uid, name, photo, size){
+  if(photo) return photo;
+  const hue = hashHue(uid || name || 'x');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><rect width="100%" height="100%" rx="${size}" fill="hsl(${hue},70%,42%)"/><text x="50%" y="53%" font-family="Sora,sans-serif" font-size="${size*0.4}" fill="#fff" text-anchor="middle" dominant-baseline="middle" font-weight="700">${initials(name)}</text></svg>`;
+  return "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svg)));
 }
 
 function show(screenId){
-  ['entryScreen','lobbyScreen','roomScreen'].forEach(id=>{
-    document.getElementById(id).classList.toggle('hidden', id!==screenId);
+  ['entry-screen','lobbyScreen','roomScreen'].forEach(id=>{
+    $(id).classList.toggle('hidden', id!==screenId);
   });
 }
 
+let myName = "";
+let myUid = null;
+let myPhoto = null;
+let myRole = "member";
+let currentTable = null;
+let localStream = null;
+let muted = false;
+const peers = {};
+const remoteAudioEls = {};
+const unsubs = [];
+let seatsCache = {};
+let speakingState = {};
+
 /* ---------------- auth + entry ---------------- */
-const nameInput = document.getElementById('nameInput');
-const enterBtn = document.getElementById('enterBtn');
-nameInput.addEventListener('input', ()=>{
-  enterBtn.disabled = nameInput.value.trim().length === 0;
-});
+const nameInput = $('nameInput');
+const enterBtn = $('enterBtn');
+nameInput.addEventListener('input', ()=>{ enterBtn.disabled = nameInput.value.trim().length === 0; });
 nameInput.addEventListener('keydown', e=>{ if(e.key==='Enter' && !enterBtn.disabled) enterBtn.click(); });
 
-// Guest fallback (no existing Yappathon session found)
 enterBtn.addEventListener('click', async ()=>{
   const guestName = nameInput.value.trim().slice(0,24);
   enterBtn.disabled = true;
   enterBtn.textContent = "Finding a seat…";
   try{
-    const cred = await auth.signInAnonymously();
-    settleIn(cred.user.uid, guestName, null);
+    const cred = await signInAnonymously(auth);
+    settleIn(cred.user.uid, guestName, null, 'member');
   }catch(err){
     console.error(err);
     toast("Couldn't connect — check your Firebase config.");
@@ -420,68 +351,62 @@ enterBtn.addEventListener('click', async ()=>{
   }
 });
 
-// Try common field names Yappathon-style profiles use, so this works
-// whether the doc uses displayName / name / username / etc.
 function pickName(data, authUser){
   if(!data) return authUser?.displayName || null;
-  return data.displayName || data.name || data.username || data.fullName
-      || data.nickname || authUser?.displayName || null;
+  return data.username || data.displayName || data.name || authUser?.displayName || null;
 }
 function pickPhoto(data, authUser){
   if(!data) return authUser?.photoURL || null;
-  return data.photoURL || data.avatar || data.photoUrl || authUser?.photoURL || null;
+  return data.photoBase64 || data.photoURL || authUser?.photoURL || null;
 }
 
-function settleIn(uid, name, photo){
+function settleIn(uid, name, photo, role){
   myUid = uid;
   myName = name || "Guest";
   myPhoto = photo || null;
-  document.getElementById('whoBar').classList.remove('hidden');
-  document.getElementById('whoName').textContent = myName;
+  myRole = role || 'member';
+  $('whoBar').classList.remove('hidden');
+  $('whoName').textContent = myName;
+  $('whoPhoto').src = avatarSrc(myUid, myName, myPhoto, 22);
+  $('whoCrown').classList.toggle('hidden', myRole !== 'admin');
   renderLobby();
   show('lobbyScreen');
 }
 
-// Firebase Auth persists sessions per browser/project — if this device is
-// already signed into Yappathon (same Firebase project, same origin), this
-// fires with that same account and we skip the entry screen entirely.
-auth.onAuthStateChanged(async (user)=>{
-  if(currentTable) return; // don't re-trigger mid-session
+onAuthStateChanged(auth, async (user)=>{
+  if(currentTable) return;
   if(!user){
-    document.getElementById('entryHeading').textContent = "Pull up a chair";
-    document.getElementById('entrySub').textContent = "No Yappathon session found on this browser.";
-    document.getElementById('guestBlock').classList.remove('hidden');
+    $('entryHeading').textContent = "Pull up a chair";
+    $('entrySub').textContent = "No Yappathon session found on this browser.";
+    $('guest-block').classList.remove('hidden');
     return;
   }
   if(user.isAnonymous){
-    // Anonymous session (either a returning guest, or Yappathon itself
-    // uses anonymous auth) — still try a users/ profile, else ask for a name.
     try{
-      const doc = await db.collection('users').doc(user.uid).get();
-      const name = pickName(doc.exists ? doc.data() : null, user);
-      if(name){ settleIn(user.uid, name, pickPhoto(doc.exists ? doc.data() : null, user)); return; }
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      const data = snap.exists() ? snap.data() : null;
+      const name = pickName(data, user);
+      if(name){ settleIn(user.uid, name, pickPhoto(data, user), data?.role); return; }
     }catch(e){}
-    document.getElementById('entryHeading').textContent = "Pull up a chair";
-    document.getElementById('entrySub').textContent = "What should we call you?";
-    document.getElementById('guestBlock').classList.remove('hidden');
+    $('entryHeading').textContent = "Pull up a chair";
+    $('entrySub').textContent = "What should we call you?";
+    $('guest-block').classList.remove('hidden');
     return;
   }
-  // Signed-in Yappathon account (email or Google) — auto seat them.
   try{
-    const doc = await db.collection('users').doc(user.uid).get();
-    const name = pickName(doc.exists ? doc.data() : null, user)
-      || (user.email ? user.email.split('@')[0] : 'Guest');
-    const photo = pickPhoto(doc.exists ? doc.data() : null, user);
-    settleIn(user.uid, name, photo);
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    const data = snap.exists() ? snap.data() : null;
+    const name = pickName(data, user) || (user.email ? user.email.split('@')[0] : 'Guest');
+    settleIn(user.uid, name, pickPhoto(data, user), data?.role);
   }catch(err){
     console.error(err);
-    settleIn(user.uid, user.displayName || (user.email ? user.email.split('@')[0] : 'Guest'), user.photoURL || null);
+    settleIn(user.uid, user.displayName || (user.email ? user.email.split('@')[0] : 'Guest'), user.photoURL || null, 'member');
   }
 });
 
 /* ---------------- lobby ---------------- */
 function renderLobby(){
-  const grid = document.getElementById('tableGrid');
+  const grid = $('tableGrid');
   grid.innerHTML = "";
   TABLES.forEach(t=>{
     const card = document.createElement('div');
@@ -490,88 +415,77 @@ function renderLobby(){
       <span class="icon">${t.icon}</span>
       <h3>${t.name}</h3>
       <p class="desc">${t.desc}</p>
-      <div class="occ" data-occ="${t.id}">— seated</div>
+      <div class="occ" data-occ="${t.id}">● 0 seated</div>
       <div class="seats-preview" data-preview="${t.id}"></div>
-      <button class="sit" data-sit="${t.id}">Sit down</button>
+      <button class="btn primary sit" data-sit="${t.id}">Sit down</button>
     `;
     grid.appendChild(card);
-    // live occupancy for each table
-    const unsub = db.collection('voiceCafe').doc(t.id).collection('seats')
-      .onSnapshot(snap=>{
-        const occEl = card.querySelector('[data-occ]');
-        const prevEl = card.querySelector('[data-preview]');
-        occEl.textContent = `${snap.size} seated`;
-        prevEl.innerHTML = "";
-        let i=0;
-        snap.forEach(doc=>{
-          if(i>=5) return;
-          const d = doc.data();
-          const chip = document.createElement('div');
-          chip.className = 'seat-chip';
-          chip.textContent = (d.name||'?').charAt(0).toUpperCase();
-          prevEl.appendChild(chip);
-          i++;
-        });
-        card.classList.toggle('full', snap.size >= t.max);
+    const unsub = onSnapshot(collection(db, 'voiceCafe', t.id, 'seats'), snap=>{
+      const occEl = card.querySelector('[data-occ]');
+      const prevEl = card.querySelector('[data-preview]');
+      occEl.textContent = `● ${snap.size} seated`;
+      prevEl.innerHTML = "";
+      let i=0;
+      snap.forEach(d=>{
+        if(i>=5) return;
+        const s = d.data();
+        const chip = document.createElement('div');
+        chip.className = 'seat-chip';
+        const img = document.createElement('img');
+        img.src = avatarSrc(d.id, s.name, s.photo, 24);
+        chip.appendChild(img);
+        prevEl.appendChild(chip);
+        i++;
       });
+      card.classList.toggle('full', snap.size >= t.max);
+    });
     unsubs.push(unsub);
   });
   grid.querySelectorAll('[data-sit]').forEach(btn=>{
     btn.addEventListener('click', ()=> joinTable(btn.dataset.sit));
   });
 }
-
-function clearLobbyListeners(){
-  while(unsubs.length){ unsubs.pop()(); }
-}
+function clearLobbyListeners(){ while(unsubs.length){ unsubs.pop()(); } }
 
 /* ---------------- joining a table ---------------- */
 async function joinTable(tableId){
   const table = TABLES.find(t=>t.id===tableId);
   if(!table) return;
-
   try{
     localStream = await navigator.mediaDevices.getUserMedia({ audio:true });
   }catch(err){
     toast("Microphone access is needed to sit at a table.");
     return;
   }
-
   clearLobbyListeners();
   currentTable = table;
   seatsCache = {};
   speakingState = {};
-  document.getElementById('roomIcon').textContent = table.icon;
-  document.getElementById('roomName').textContent = table.name;
-  document.getElementById('seatsArea').innerHTML = "";
-  document.getElementById('dockStatus').textContent = "Connecting…";
+  seatEls = {};
+  $('roomIcon').textContent = table.icon;
+  $('roomName').textContent = table.name;
+  $('seatsArea').innerHTML = "";
+  $('dockStatus').textContent = "Connecting…";
   show('roomScreen');
 
-  // announce our seat
-  await db.collection('voiceCafe').doc(table.id).collection('seats').doc(myUid)
-    .set({ name: myName, photo: myPhoto || null, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+  await setDoc(doc(db, 'voiceCafe', table.id, 'seats', myUid), {
+    name: myName, photo: myPhoto || null, role: myRole, joinedAt: serverTimestamp()
+  });
 
-  // watch seats: connect to newcomers, disconnect from those who leave
-  const seatsUnsub = db.collection('voiceCafe').doc(table.id).collection('seats')
-    .onSnapshot(snap=>{
-      const liveUids = new Set();
-      snap.forEach(doc=>{
-        liveUids.add(doc.id);
-        seatsCache[doc.id] = doc.data();
-        if(doc.id !== myUid && !peers[doc.id]){
-          connectToPeer(table.id, doc.id);
-        }
-      });
-      // cleanup peers who left
-      Object.keys(peers).forEach(uid=>{
-        if(!liveUids.has(uid)) teardownPeer(uid);
-      });
-      renderSeats();
+  const seatsUnsub = onSnapshot(collection(db, 'voiceCafe', table.id, 'seats'), snap=>{
+    const liveUids = new Set();
+    snap.forEach(d=>{
+      liveUids.add(d.id);
+      seatsCache[d.id] = d.data();
+      if(d.id !== myUid && !peers[d.id]) connectToPeer(table.id, d.id);
     });
+    Object.keys(peers).forEach(uid=>{ if(!liveUids.has(uid)) teardownPeer(uid); });
+    renderSeats();
+  });
   unsubs.push(seatsUnsub);
 
   monitorOwnVolume();
-  document.getElementById('dockStatus').textContent = "You're seated";
+  $('dockStatus').textContent = "You're seated";
 }
 
 /* ---------------- WebRTC signaling via Firestore ---------------- */
@@ -580,7 +494,6 @@ function pairId(a,b){ return [a,b].sort().join('_'); }
 function connectToPeer(tableId, otherUid){
   const pc = new RTCPeerConnection(ICE_SERVERS);
   peers[otherUid] = pc;
-
   localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
   const remoteStream = new MediaStream();
@@ -598,15 +511,13 @@ function connectToPeer(tableId, otherUid){
 
   const iAmInitiator = myUid < otherUid;
   const pid = pairId(myUid, otherUid);
-  const sigRef = db.collection('voiceCafe').doc(tableId).collection('signals').doc(pid);
+  const sigRef = doc(db, 'voiceCafe', tableId, 'signals', pid);
   const myCandField = iAmInitiator ? 'candidatesA' : 'candidatesB';
   const theirCandField = iAmInitiator ? 'candidatesB' : 'candidatesA';
 
   pc.onicecandidate = (e)=>{
     if(e.candidate){
-      sigRef.set({
-        [myCandField]: firebase.firestore.FieldValue.arrayUnion(JSON.stringify(e.candidate))
-      }, { merge:true });
+      setDoc(sigRef, { [myCandField]: arrayUnion(JSON.stringify(e.candidate)) }, { merge:true });
     }
   };
 
@@ -616,11 +527,11 @@ function connectToPeer(tableId, otherUid){
     (async ()=>{
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      await sigRef.set({ offer: JSON.stringify(offer) }, { merge:true });
+      await setDoc(sigRef, { offer: JSON.stringify(offer) }, { merge:true });
     })();
   }
 
-  const sigUnsub = sigRef.onSnapshot(async snap=>{
+  const sigUnsub = onSnapshot(sigRef, async snap=>{
     const data = snap.data();
     if(!data) return;
 
@@ -628,13 +539,11 @@ function connectToPeer(tableId, otherUid){
       await pc.setRemoteDescription(JSON.parse(data.offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-      await sigRef.set({ answer: JSON.stringify(answer) }, { merge:true });
+      await setDoc(sigRef, { answer: JSON.stringify(answer) }, { merge:true });
     }
-
     if(iAmInitiator && data.answer && !pc.currentRemoteDescription){
       await pc.setRemoteDescription(JSON.parse(data.answer));
     }
-
     const theirCands = data[theirCandField] || [];
     for(let i=appliedCandidateCount; i<theirCands.length; i++){
       try{ await pc.addIceCandidate(JSON.parse(theirCands[i])); }catch(e){}
@@ -651,7 +560,7 @@ function teardownPeer(uid){
   renderSeats();
 }
 
-/* ---------------- volume / "speaking" detection ---------------- */
+/* ---------------- volume / speaking detection (with hysteresis) ---------------- */
 function makeAnalyser(stream){
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   const src = ctx.createMediaStreamSource(stream);
@@ -662,107 +571,107 @@ function makeAnalyser(stream){
 }
 function loopVolume(analyser, onLevel){
   const data = new Uint8Array(analyser.frequencyBinCount);
+  let state = false;
   function tick(){
     analyser.getByteFrequencyData(data);
     const avg = data.reduce((a,b)=>a+b,0)/data.length;
-    onLevel(avg > 14);
+    if(!state && avg > 20){ state = true; onLevel(true); }
+    else if(state && avg < 9){ state = false; onLevel(false); }
     requestAnimationFrame(tick);
   }
   tick();
 }
 function monitorOwnVolume(){
   if(!localStream) return;
-  const analyser = makeAnalyser(localStream);
-  loopVolume(analyser, speaking=>{
-    if(speakingState[myUid] !== speaking){
-      speakingState[myUid] = speaking;
-      renderSeats();
-    }
-  });
+  loopVolume(makeAnalyser(localStream), speaking=>setSpeaking(myUid, speaking));
 }
 function monitorRemoteVolume(uid, stream){
-  const analyser = makeAnalyser(stream);
-  loopVolume(analyser, speaking=>{
-    if(speakingState[uid] !== speaking){
-      speakingState[uid] = speaking;
-      renderSeats();
-    }
-  });
+  loopVolume(makeAnalyser(stream), speaking=>setSpeaking(uid, speaking));
 }
 
-/* ---------------- rendering the room ---------------- */
+/* ---------------- rendering the room — persistent per-uid nodes, only
+   rebuilt on membership/mute changes; speaking just toggles a class. ---------------- */
+let seatEls = {};
+
+function seatMarkup(uid){
+  const d = seatsCache[uid] || {};
+  const isSelf = uid === myUid;
+  const speaking = !!speakingState[uid] && !(isSelf && muted);
+  return `
+    <div class="avatar-wrap ${speaking?'speaking':''}">
+      <div class="avatar"><img src="${avatarSrc(uid, d.name, d.photo, 68)}" alt=""></div>
+    </div>
+    <div class="name">${d.name || 'Guest'}${d.role==='admin' ? ' <span class="role-crown">♛</span>' : ''}${isSelf?' (you)':''}</div>
+    ${isSelf && muted ? '<div class="mute-badge">muted</div>' : `<div class="tag">${isSelf?'you':'seated'}</div>`}
+  `;
+}
+
 function renderSeats(){
   if(!currentTable) return;
-  const area = document.getElementById('seatsArea');
-  area.innerHTML = "";
+  const area = $('seatsArea');
   const uids = Object.keys(seatsCache);
-  uids.forEach(uid=>{
-    const d = seatsCache[uid];
-    const isSelf = uid === myUid;
-    const speaking = !!speakingState[uid] && !(isSelf && muted);
-    const seat = document.createElement('div');
-    seat.className = 'seat';
-    const avatarInner = d.photo
-      ? `<img src="${d.photo}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
-      : (d.name||'?').charAt(0).toUpperCase();
-    seat.innerHTML = `
-      <div class="avatar-wrap ${speaking?'speaking':''}">
-        <div class="avatar ${isSelf?'self':''}">${avatarInner}</div>
-        <div class="steam"><span></span><span></span><span></span></div>
-      </div>
-      <div class="name">${d.name || 'Guest'}${isSelf?' (you)':''}</div>
-      ${isSelf && muted ? '<div class="mute-badge">muted</div>' : '<div class="tag">'+(isSelf?'':'seated')+'</div>'}
-    `;
-    area.appendChild(seat);
+  Object.keys(seatEls).forEach(uid=>{
+    if(!seatsCache[uid]){ seatEls[uid].remove(); delete seatEls[uid]; }
   });
-  const dockStatus = document.getElementById('dockStatus');
+  uids.forEach(uid=>{
+    if(!seatEls[uid]){
+      const seat = document.createElement('div');
+      seat.className = 'seat';
+      area.appendChild(seat);
+      seatEls[uid] = seat;
+    }
+    seatEls[uid].innerHTML = seatMarkup(uid);
+  });
+  const dockStatus = $('dockStatus');
   if(dockStatus) dockStatus.textContent = `${uids.length} at the table`;
 }
 
+function setSpeaking(uid, speaking){
+  const isSelf = uid === myUid;
+  const shouldShow = speaking && !(isSelf && muted);
+  const wasShowing = !!speakingState[uid] && !(isSelf && muted);
+  speakingState[uid] = speaking;
+  if(shouldShow === wasShowing) return;
+  const seatEl = seatEls[uid];
+  if(!seatEl) return;
+  const wrap = seatEl.querySelector('.avatar-wrap');
+  if(wrap) wrap.classList.toggle('speaking', shouldShow);
+}
+
 /* ---------------- controls ---------------- */
-document.getElementById('muteBtn').addEventListener('click', ()=>{
+$('muteBtn').addEventListener('click', ()=>{
   muted = !muted;
-  if(localStream){
-    localStream.getAudioTracks().forEach(t => t.enabled = !muted);
-  }
-  const btn = document.getElementById('muteBtn');
-  btn.classList.toggle('mute-on', muted);
-  btn.textContent = muted ? '🔇' : '🎤';
+  if(localStream) localStream.getAudioTracks().forEach(t => t.enabled = !muted);
+  const btn = $('muteBtn');
+  btn.classList.toggle('is-muted', muted);
+  $('muteLabel').textContent = muted ? 'Unmute' : 'Mute';
   renderSeats();
 });
 
 async function leaveTable(){
   if(!currentTable) return;
   const tableId = currentTable.id;
-
   Object.keys(peers).forEach(teardownPeer);
-  if(localStream){
-    localStream.getTracks().forEach(t=>t.stop());
-    localStream = null;
-  }
+  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream = null; }
   while(unsubs.length){ unsubs.pop()(); }
-
-  try{
-    await db.collection('voiceCafe').doc(tableId).collection('seats').doc(myUid).delete();
-  }catch(e){}
+  try{ await deleteDoc(doc(db, 'voiceCafe', tableId, 'seats', myUid)); }catch(e){}
 
   currentTable = null;
   muted = false;
-  const btn = document.getElementById('muteBtn');
-  btn.classList.remove('mute-on');
-  btn.textContent = '🎤';
+  seatEls = {};
+  const btn = $('muteBtn');
+  btn.classList.remove('is-muted');
+  $('muteLabel').textContent = 'Mute';
 
   renderLobby();
   show('lobbyScreen');
 }
-document.getElementById('leaveBtn').addEventListener('click', leaveTable);
-document.getElementById('leaveBtn2').addEventListener('click', leaveTable);
+$('leaveBtn').addEventListener('click', leaveTable);
+$('leaveBtn2').addEventListener('click', leaveTable);
 
-// best-effort seat cleanup if the tab is closed while seated
 window.addEventListener('beforeunload', ()=>{
   if(currentTable && myUid){
-    navigator.sendBeacon && db.collection('voiceCafe').doc(currentTable.id)
-      .collection('seats').doc(myUid).delete().catch(()=>{});
+    deleteDoc(doc(db, 'voiceCafe', currentTable.id, 'seats', myUid)).catch(()=>{});
   }
 });
 </script>
