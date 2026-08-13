@@ -8,18 +8,43 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
+  :root, [data-theme="yapp-dark"] {
     --bg: #14151a; --bg-alt: #1b1c22; --bg-elevated: #23242c; --bg-input:#2a2b34;
     --border: #2e2f38; --text: #ECEDEF; --text-muted: #9498A3;
     --accent: #FF7A33; --accent-hover:#FF8F52; --accent-contrast: #14151a; --accent-soft: rgba(255,122,51,0.15);
-    --online: #3BA55D; --danger: #ED4245; --shadow: rgba(0,0,0,0.45);
-    --glow-a: rgba(255,122,51,.16); --glow-b: rgba(255,190,90,.08);
+    --online: #3BA55D; --danger: #ED4245; --shadow: rgba(0,0,0,0.45); --glow-a: rgba(255,122,51,.16); --glow-b: rgba(255,190,90,.08);
   }
+  [data-theme="yapp-light"] {
+    --bg: #FBF7F2; --bg-alt: #FFFFFF; --bg-elevated: #FFFFFF; --bg-input:#F1ECE3;
+    --border: #E7E1D8; --text: #2A2620; --text-muted: #837C6C;
+    --accent: #E8590C; --accent-hover:#D14F0A; --accent-contrast: #FFFFFF; --accent-soft: rgba(232,89,12,0.12);
+    --online: #2E9E52; --danger: #D6373B; --shadow: rgba(60,40,20,0.12); --glow-a: rgba(232,89,12,.12); --glow-b: rgba(255,185,80,.08);
+  }
+  [data-theme="midnight"] {
+    --bg: #0B0F1A; --bg-alt: #101526; --bg-elevated: #161C31; --bg-input:#1B2138;
+    --border: #232B45; --text: #E3E7F5; --text-muted: #838EB0;
+    --accent: #7C8CFF; --accent-hover:#95A2FF; --accent-contrast: #0B0F1A; --accent-soft: rgba(124,140,255,0.15);
+    --online: #3BA55D; --danger: #FF5D6C; --shadow: rgba(0,0,0,0.5); --glow-a: rgba(124,140,255,.16); --glow-b: rgba(80,180,255,.08);
+  }
+  [data-theme="forest"] {
+    --bg: #101712; --bg-alt: #16211A; --bg-elevated: #1C2A21; --bg-input:#20301F;
+    --border: #2B3B30; --text: #E6F0E8; --text-muted: #8FA898;
+    --accent: #4FBE7B; --accent-hover:#69CE91; --accent-contrast: #0B120E; --accent-soft: rgba(79,190,123,0.15);
+    --online: #7CD98A; --danger: #E4636B; --shadow: rgba(79,190,123,.16); --glow-a: rgba(79,190,123,.16); --glow-b: rgba(130,220,150,.07);
+  }
+  [data-theme="rose"] { --bg:#1A1015;--bg-alt:#24151D;--bg-elevated:#30202A;--bg-input:#382530;--border:#4A303C;--text:#F4E8ED;--text-muted:#B99BA8;--accent:#FF6F9F;--accent-hover:#FF86AD;--accent-contrast:#1A1015;--accent-soft:rgba(255,111,159,.15);--online:#55C98A;--danger:#FF6677;--shadow:rgba(0,0,0,.5);--glow-a:rgba(255,111,159,.15);--glow-b:rgba(255,95,180,.07); }
+  [data-theme="ocean"] { --bg:#0B151A;--bg-alt:#102027;--bg-elevated:#172B35;--bg-input:#1C333E;--border:#294650;--text:#E5F6FA;--text-muted:#86AAB4;--accent:#39C6D8;--accent-hover:#5BD4E2;--accent-contrast:#081316;--accent-soft:rgba(57,198,216,.15);--online:#4FD18A;--danger:#FF6670;--shadow:rgba(0,0,0,.5);--glow-a:rgba(57,198,216,.15);--glow-b:rgba(70,140,255,.07); }
+  [data-theme="lavender"] { --bg:#15121C;--bg-alt:#1E1928;--bg-elevated:#282238;--bg-input:#302944;--border:#403653;--text:#EEE9FA;--text-muted:#A69BB9;--accent:#B18CFF;--accent-hover:#C1A3FF;--accent-contrast:#15121C;--accent-soft:rgba(177,140,255,.15);--online:#62D89A;--danger:#FF6D83;--shadow:rgba(0,0,0,.5);--glow-a:rgba(177,140,255,.16);--glow-b:rgba(110,170,255,.07); }
+  [data-theme="sunset"] { --bg:#1A1210;--bg-alt:#261916;--bg-elevated:#33211B;--bg-input:#3B2720;--border:#52362A;--text:#F8ECE5;--text-muted:#BDA49A;--accent:#FF9A4D;--accent-hover:#FFAD69;--accent-contrast:#1A1210;--accent-soft:rgba(255,154,77,.15);--online:#63D18A;--danger:#FF6971;--shadow:rgba(255,154,77,.16);--glow-a:rgba(255,154,77,.16);--glow-b:rgba(255,75,110,.07); }
+  [data-theme="slate"] { --bg:#11151A;--bg-alt:#181D24;--bg-elevated:#202731;--bg-input:#262E39;--border:#343E4C;--text:#E9EDF2;--text-muted:#8D99A8;--accent:#A7B8CC;--accent-hover:#BAC8D8;--accent-contrast:#11151A;--accent-soft:rgba(167,184,204,.15);--online:#58CC8B;--danger:#F06A72;--shadow:rgba(0,0,0,.5);--glow-a:rgba(167,184,204,.12);--glow-b:rgba(90,130,180,.07); }
+  [data-theme="nova-special"] { --bg:#090612;--bg-alt:#120A1E;--bg-elevated:#1B0F2A;--bg-input:#24153A;--border:#4A2A67;--text:#F8F2FF;--text-muted:#B9A5D0;--accent:#D66BFF;--accent-hover:#E28AFF;--accent-contrast:#12071B;--accent-soft:rgba(214,107,255,.17);--online:#62E5B0;--danger:#FF5C88;--shadow:rgba(160,80,255,.22);--glow-a:rgba(214,107,255,.20);--glow-b:rgba(72,154,255,.12); }
+
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body {
     margin: 0; background: var(--bg); color: var(--text);
     font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased;
+    transition: background .3s ease, color .3s ease;
   }
   h1,h2,h3, .brand, .logo-word { font-family: 'Sora', sans-serif; }
   ::selection { background: var(--accent-soft); }
@@ -30,19 +55,26 @@
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   @keyframes bgDrift { 0%,100%{background-position:15% 20%, 85% 80%;} 50%{background-position:20% 26%, 80% 74%;} }
-  @keyframes cardIn { from{opacity:0; transform:translateY(14px) scale(.98);} to{opacity:1; transform:translateY(0) scale(1);} }
-  @keyframes fadeSlideUp { from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
-  @keyframes scaleIn { from{opacity:0; transform:scale(.92);} to{opacity:1; transform:scale(1);} }
+  @keyframes cardIn { from{opacity:0; transform:translateY(16px) scale(.96);} to{opacity:1; transform:translateY(0) scale(1);} }
+  @keyframes fadeSlideUp { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+  @keyframes scaleIn { from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
   @keyframes pulseRing { 0%{box-shadow:0 0 0 0 rgba(59,165,93,.55);} 70%{box-shadow:0 0 0 6px rgba(59,165,93,0);} 100%{box-shadow:0 0 0 0 rgba(59,165,93,0);} }
-  @keyframes speakPulse { 0%{box-shadow:0 0 0 0 var(--accent-soft);} 70%{box-shadow:0 0 0 8px rgba(255,122,51,0);} 100%{box-shadow:0 0 0 0 rgba(255,122,51,0);} }
-  @keyframes logoGlow { 0%,100%{filter:drop-shadow(0 0 0px var(--accent));} 50%{filter:drop-shadow(0 0 6px var(--accent));} }
+  @keyframes speakPulse { 0%{box-shadow:0 0 0 0 var(--accent-soft), 0 0 0 0 var(--accent-soft);} 70%{box-shadow:0 0 0 6px rgba(255,122,51,0), 0 0 22px 4px var(--accent-soft);} 100%{box-shadow:0 0 0 0 rgba(255,122,51,0), 0 0 0 0 rgba(255,122,51,0);} }
+  @keyframes logoGlow { 0%,100%{filter:drop-shadow(0 0 0px var(--accent));} 50%{filter:drop-shadow(0 0 7px var(--accent));} }
   @keyframes toastIn { from{opacity:0; transform:translateX(24px) scale(.96);} to{opacity:1; transform:translateX(0) scale(1);} }
+  @keyframes float { 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-4px);} }
+  @keyframes ambientGlow { 0%,100%{ transform:translate3d(-3%,-2%,0) scale(1); opacity:.78;} 50%{ transform:translate3d(3%,2%,0) scale(1.08); opacity:1;} }
+  @keyframes ambientGlow2 { 0%,100%{ transform:translate3d(4%,2%,0) scale(1.02); opacity:.42;} 50%{ transform:translate3d(-4%,-3%,0) scale(1.12); opacity:.72;} }
+  @keyframes dotBounce { 0%,80%,100%{ transform:scale(0); opacity:.4;} 40%{ transform:scale(1); opacity:1;} }
+  @keyframes novaFlash { 0%{opacity:0} 10%{opacity:1} 24%{opacity:1} 42%{opacity:.88} 68%{opacity:.42} 100%{opacity:0} }
+  @keyframes novaStars { 0%,100%{transform:scale(1);opacity:.5} 50%{transform:scale(1.02);opacity:.85} }
   @media (prefers-reduced-motion: reduce){ *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
 
   .bubble-mark svg{ display:block; }
   .hidden{ display:none !important; }
 
-  /* ---------- entry screen (mirrors Yappathon's auth-card) ---------- */
+  /* ---------- entry screen ---------- */
   #entry-screen{
     min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
     background:
@@ -51,138 +83,199 @@
       var(--bg);
     background-size:200% 200%, 200% 200%, auto;
     animation: bgDrift 10s ease-in-out infinite;
+    position:relative; overflow:hidden;
   }
   .entry-card{
-    width:100%; max-width:400px; background:var(--bg-alt); border:1px solid var(--border);
-    border-radius:20px; padding:40px 32px; text-align:center; box-shadow:0 20px 60px var(--shadow);
-    animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
+    width:100%; max-width:400px; background:color-mix(in srgb, var(--bg-alt) 92%, transparent);
+    backdrop-filter:blur(16px); border:1px solid var(--border);
+    border-radius:22px; padding:42px 34px; text-align:center; box-shadow:0 24px 70px var(--shadow);
+    animation: cardIn .55s cubic-bezier(.22,1,.36,1) both;
+    position:relative; z-index:1;
   }
-  .entry-card .bubble-mark{ color:var(--accent); margin-bottom:14px; }
+  .entry-card .bubble-mark{ color:var(--accent); margin-bottom:16px; display:inline-block; animation: float 4s ease-in-out infinite; }
   .entry-card .bubble-mark svg{ animation: logoGlow 3.2s ease-in-out infinite; margin:0 auto; }
-  .entry-card h1{ font-size:24px; margin:0 0 6px; letter-spacing:-0.02em; }
-  .entry-card p.tag{ color:var(--text-muted); font-size:13.5px; margin:0 0 24px; line-height:1.5; }
+  .entry-card h1{ font-size:24px; margin:0 0 8px; letter-spacing:-0.02em; }
+  .entry-card p.tag{ color:var(--text-muted); font-size:13.5px; margin:0 0 26px; line-height:1.5; }
+  .checking-dots{ display:inline-flex; gap:4px; margin-top:2px; }
+  .checking-dots span{ width:5px; height:5px; border-radius:50%; background:var(--accent); animation:dotBounce 1.3s ease-in-out infinite; }
+  .checking-dots span:nth-child(2){ animation-delay:.15s; }
+  .checking-dots span:nth-child(3){ animation-delay:.3s; }
+  #guest-block{ animation: fadeSlideUp .4s cubic-bezier(.22,1,.36,1) both; }
   #guest-block input{
     width:100%; background:var(--bg-input); border:1px solid var(--border); color:var(--text);
-    padding:11px 13px; border-radius:10px; font-size:14px; font-family:inherit; outline:none;
-    transition:border-color .15s ease;
+    padding:12px 14px; border-radius:12px; font-size:14px; font-family:inherit; outline:none;
+    transition:border-color .2s ease, background .2s ease, box-shadow .2s ease;
   }
-  #guest-block input:focus{ border-color:var(--accent); }
+  #guest-block input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
   .btn{
-    padding:10px 18px; border-radius:10px; font-size:13.5px; font-weight:700; border:1px solid var(--border);
-    background:none; color:var(--text); transition:background .15s ease, transform .1s ease, box-shadow .15s ease;
+    padding:10px 18px; border-radius:12px; font-size:13.5px; font-weight:700; border:1px solid var(--border);
+    background:none; color:var(--text); transition:background .18s ease, transform .12s cubic-bezier(.22,1,.36,1), box-shadow .18s ease, border-color .18s ease;
   }
-  .btn:hover{ background:var(--bg-input); transform:translateY(-1px); }
-  .btn:active{ transform:translateY(0) scale(.97); }
+  .btn:hover{ background:var(--bg-input); transform:translateY(-1.5px); }
+  .btn:active{ transform:translateY(0) scale(.96); }
   .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
-  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-contrast); width:100%; margin-top:12px; padding:12px 18px; }
-  .btn.primary:hover{ background:var(--accent-hover); box-shadow:0 6px 16px var(--accent-soft); }
-  .mic-note{ margin-top:14px; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-contrast); width:100%; margin-top:14px; padding:13px 18px; box-shadow:0 8px 20px var(--accent-soft); }
+  .btn.primary:hover{ background:var(--accent-hover); box-shadow:0 10px 26px var(--accent-soft); transform:translateY(-2px); }
+  .mic-note{ margin-top:16px; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
 
   /* ---------- top bar ---------- */
   .topbar{
-    height:56px; border-bottom:1px solid var(--border); background:color-mix(in srgb, var(--bg) 84%, transparent);
-    display:flex; align-items:center; padding:0 18px; gap:10px; backdrop-filter:blur(10px);
-    position:sticky; top:0; z-index:20;
+    height:58px; border-bottom:1px solid var(--border); background:color-mix(in srgb, var(--bg) 78%, transparent);
+    display:flex; align-items:center; padding:0 18px; gap:10px; backdrop-filter:blur(14px);
+    position:sticky; top:0; z-index:20; transition:background .3s ease, border-color .3s ease;
   }
   .topbar .bubble-mark{ color:var(--accent); width:20px; height:20px; flex-shrink:0; }
   .topbar .logo-word{ font-weight:800; font-size:15.5px; letter-spacing:-0.01em; }
   .topbar .sub-word{ font-weight:500; font-size:13px; color:var(--text-muted); margin-left:2px; }
   .topbar-spacer{ flex:1; }
-  .back-to-chat{ text-decoration:none; display:inline-flex; align-items:center; padding:7px 14px; font-size:12.5px; margin-right:12px; }
-  .who{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); }
+  .back-to-chat{ text-decoration:none; display:inline-flex; align-items:center; padding:8px 15px; font-size:12.5px; margin-right:8px; }
+  .icon-btn{
+    background:none; border:1px solid transparent; color:var(--text-muted); padding:7px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .18s ease, color .18s ease, transform .12s ease, border-color .18s ease;
+  }
+  .icon-btn:hover{ background:var(--bg-input); color:var(--text); transform:scale(1.06); }
+  .icon-btn:active{ transform:scale(.94); }
+  .ui-icon{ width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; display:block; }
+
+  .theme-picker{ position:relative; margin-right:6px; }
+  .theme-menu{
+    display:none; position:absolute; right:0; top:calc(100% + 8px); background:var(--bg-elevated); border:1px solid var(--border);
+    border-radius:14px; padding:6px; box-shadow:0 16px 40px var(--shadow); z-index:30; min-width:168px;
+    animation: scaleIn .16s cubic-bezier(.22,1,.36,1) both; transform-origin: top right;
+  }
+  .theme-menu.open{ display:block; }
+  .theme-opt{ display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:9px; font-size:13px; transition:background .12s ease; }
+  .theme-opt:hover{ background:var(--bg-input); }
+  .theme-opt.active{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  .theme-opt .dot{ width:11px; height:11px; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 2px var(--bg-elevated); }
+
+  .who{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); animation: fadeIn .3s ease both; }
   .who img{ width:22px; height:22px; border-radius:50%; object-fit:cover; }
   .who .role-crown{ color:var(--accent); font-size:11px; }
 
   /* ---------- screens ---------- */
-  .screen{ max-width:1040px; margin:0 auto; padding:40px 24px 80px; }
+  .screen{ max-width:1040px; margin:0 auto; padding:44px 24px 90px; }
 
-  /* ---------- section label (mirrors Yappathon sidebar section-label) ---------- */
-  .section-label{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); font-weight:700; margin-bottom:6px; }
-  .menu-heading h2{ font-size:26px; margin:6px 0 8px; font-weight:700; letter-spacing:-0.01em; }
-  .menu-heading p{ color:var(--text-muted); font-size:14px; max-width:520px; line-height:1.55; margin:0 0 30px; }
+  .section-label{ font-size:11px; text-transform:uppercase; letter-spacing:.09em; color:var(--text-muted); font-weight:700; margin-bottom:8px; animation: fadeSlideUp .4s ease both; }
+  .menu-heading h2{ font-size:28px; margin:6px 0 10px; font-weight:700; letter-spacing:-0.015em; animation: fadeSlideUp .45s .05s cubic-bezier(.22,1,.36,1) both; }
+  .menu-heading p{ color:var(--text-muted); font-size:14px; max-width:520px; line-height:1.55; margin:0 0 32px; animation: fadeSlideUp .45s .1s cubic-bezier(.22,1,.36,1) both; }
 
   /* ---------- table grid ---------- */
-  .table-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:14px; }
+  .table-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(232px,1fr)); gap:16px; }
   .table-card{
-    position:relative; border:1px solid var(--border); border-radius:16px; padding:20px;
-    background:var(--bg-alt); animation:cardIn .45s cubic-bezier(.22,1,.36,1) both;
-    transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    position:relative; border:1px solid var(--border); border-radius:18px; padding:22px;
+    background:linear-gradient(155deg, var(--bg-alt), color-mix(in srgb, var(--bg-alt) 85%, var(--bg)));
+    animation:cardIn .5s cubic-bezier(.22,1,.36,1) both; opacity:0;
+    transition:transform .22s cubic-bezier(.22,1,.36,1), border-color .22s ease, box-shadow .22s ease;
   }
-  .table-card:hover{ transform:translateY(-2px); border-color:var(--accent); background:var(--bg-elevated); }
-  .table-card .icon{ font-size:24px; display:block; margin-bottom:10px; }
+  .table-grid .table-card:nth-child(1){ animation-delay:.03s; }
+  .table-grid .table-card:nth-child(2){ animation-delay:.08s; }
+  .table-grid .table-card:nth-child(3){ animation-delay:.13s; }
+  .table-grid .table-card:nth-child(4){ animation-delay:.18s; }
+  .table-grid .table-card:nth-child(5){ animation-delay:.23s; }
+  .table-grid .table-card:nth-child(6){ animation-delay:.28s; }
+  .table-card:hover{ transform:translateY(-4px); border-color:var(--accent); box-shadow:0 16px 40px var(--shadow), 0 0 0 1px var(--accent-soft); }
+  .table-card .icon{ font-size:25px; display:block; margin-bottom:11px; transition:transform .25s cubic-bezier(.22,1,.36,1); }
+  .table-card:hover .icon{ transform:scale(1.15) rotate(-4deg); }
   .table-card h3{ margin:0 0 4px; font-size:16.5px; font-weight:700; }
-  .table-card .desc{ font-size:12.5px; color:var(--text-muted); margin:0 0 14px; line-height:1.5; min-height:32px; }
-  .table-card .occ{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--online); font-weight:700; margin-bottom:12px; font-family:'JetBrains Mono', monospace; }
-  .table-card .seats-preview{ display:flex; margin-bottom:14px; min-height:24px; flex-wrap:wrap; }
-  .seat-chip{ width:24px; height:24px; border-radius:50%; margin-right:-7px; border:2px solid var(--bg-alt); overflow:hidden; flex-shrink:0; }
+  .table-card .desc{ font-size:12.5px; color:var(--text-muted); margin:0 0 15px; line-height:1.5; min-height:32px; }
+  .table-card .occ{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--online); font-weight:700; margin-bottom:13px; font-family:'JetBrains Mono', monospace; }
+  .table-card .occ .live-dot{ width:6px; height:6px; border-radius:50%; background:var(--online); animation:pulseRing 2s ease-out infinite; }
+  .table-card .seats-preview{ display:flex; margin-bottom:15px; min-height:24px; flex-wrap:wrap; }
+  .seat-chip{ width:24px; height:24px; border-radius:50%; margin-right:-7px; border:2px solid var(--bg-alt); overflow:hidden; flex-shrink:0; animation:scaleIn .25s cubic-bezier(.22,1,.36,1) both; }
   .seat-chip img{ width:100%; height:100%; object-fit:cover; display:block; }
   .table-card button.sit{ width:100%; }
   .table-card.full button.sit{ opacity:.45; cursor:not-allowed; }
 
   /* ---------- in-table room ---------- */
-  .table-room{ animation:fadeSlideUp .35s cubic-bezier(.22,1,.36,1) both; }
+  .table-room{ animation:fadeSlideUp .4s cubic-bezier(.22,1,.36,1) both; }
   .room-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:12px; }
-  .room-title{ display:flex; align-items:center; gap:12px; }
-  .room-title .icon{ font-size:26px; }
-  .room-title h2{ margin:0; font-size:22px; font-weight:700; }
-  .leave-link{ color:var(--text-muted); background:none; border:none; font-size:13px; font-weight:600; padding:8px 4px; }
-  .leave-link:hover{ color:var(--text); }
+  .room-title{ display:flex; align-items:center; gap:13px; }
+  .room-title .icon{ font-size:28px; animation: float 3.6s ease-in-out infinite; }
+  .room-title h2{ margin:0; font-size:23px; font-weight:700; }
+  .leave-link{ color:var(--text-muted); background:none; border:none; font-size:13px; font-weight:600; padding:8px 6px; border-radius:8px; transition:color .15s ease, background .15s ease; }
+  .leave-link:hover{ color:var(--text); background:var(--bg-input); }
 
   .seats-area{
-    margin-top:26px; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:18px;
-    padding:26px; border-radius:18px; border:1px solid var(--border); background:var(--bg-alt);
-    min-height:200px; position:relative; overflow:hidden;
+    margin-top:28px; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:20px;
+    padding:30px; border-radius:20px; border:1px solid var(--border); background:var(--bg-alt);
+    min-height:210px; position:relative; overflow:hidden; isolation:isolate;
+    transition:background .3s ease, border-color .3s ease;
   }
-  .seats-area::before{
-    content:""; position:absolute; inset:-30%; z-index:0; pointer-events:none; border-radius:50%; filter:blur(70px);
-    background:radial-gradient(circle at 25% 25%, var(--glow-a), transparent 40%), radial-gradient(circle at 78% 72%, var(--glow-b), transparent 34%);
-    opacity:.8;
-  }
-  .seat{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; animation:cardIn .35s ease both; }
-  .avatar-wrap{ position:relative; width:68px; height:68px; }
-  .avatar{ width:68px; height:68px; border-radius:50%; display:block; overflow:hidden; border:2px solid var(--bg-alt); background:var(--accent); }
+  .seats-area::before, .seats-area::after{ content:""; position:absolute; inset:-30%; z-index:-1; pointer-events:none; border-radius:50%; filter:blur(70px); }
+  .seats-area::before{ background:radial-gradient(circle at 25% 25%, var(--glow-a), transparent 40%), radial-gradient(circle at 78% 72%, var(--glow-b), transparent 34%); animation:ambientGlow 14s ease-in-out infinite; }
+  .seats-area::after{ background:radial-gradient(circle at 78% 22%, var(--glow-b), transparent 34%), radial-gradient(circle at 22% 78%, var(--glow-a), transparent 38%); animation:ambientGlow2 18s ease-in-out infinite; }
+  .seat{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; animation:cardIn .4s cubic-bezier(.22,1,.36,1) both; }
+  .avatar-wrap{ position:relative; width:70px; height:70px; }
+  .avatar{ width:70px; height:70px; border-radius:50%; display:block; overflow:hidden; border:2px solid var(--bg-alt); background:var(--accent); transition:border-color .2s ease, transform .2s cubic-bezier(.22,1,.36,1); }
   .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .avatar-wrap.speaking .avatar{ animation:speakPulse 1.1s ease-in-out infinite; border-color:var(--accent); }
-  .seat .name{ font-size:13px; font-weight:600; max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:flex; align-items:center; gap:3px; justify-content:center; }
+  .avatar-wrap.speaking .avatar{ animation:speakPulse 1.15s ease-in-out infinite; border-color:var(--accent); transform:scale(1.04); }
+  .seat .name{ font-size:13px; font-weight:600; max-width:112px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:flex; align-items:center; gap:3px; justify-content:center; }
   .seat .name .role-crown{ color:var(--accent); font-size:10.5px; }
-  .seat .tag{ font-size:10.5px; color:var(--text-muted); font-family:'JetBrains Mono', monospace; }
-  .mute-badge{ font-size:10px; color:var(--danger); font-weight:700; }
+  .seat .tag{ font-size:10.5px; color:var(--text-muted); font-family:'JetBrains Mono', monospace; letter-spacing:.02em; }
+  .mute-badge{ font-size:10px; color:var(--danger); font-weight:700; letter-spacing:.02em; }
 
-  /* ---------- dock controls (mirrors Yappathon .voice-controls / .icon-btn) ---------- */
+  /* ---------- dock controls ---------- */
   .dock{
-    position:sticky; bottom:24px; margin-top:30px;
+    position:sticky; bottom:26px; margin-top:32px;
     display:flex; align-items:center; justify-content:center; gap:10px;
-    padding:10px 14px; border-radius:999px; border:1px solid var(--border);
-    background:color-mix(in srgb, var(--bg-elevated) 92%, transparent); backdrop-filter:blur(12px);
-    box-shadow:0 18px 55px var(--shadow); width:fit-content; margin-left:auto; margin-right:auto;
+    padding:11px 15px; border-radius:999px; border:1px solid var(--border);
+    background:color-mix(in srgb, var(--bg-elevated) 88%, transparent); backdrop-filter:blur(16px);
+    box-shadow:0 20px 60px var(--shadow); width:fit-content; margin-left:auto; margin-right:auto;
+    animation: fadeSlideUp .4s .1s cubic-bezier(.22,1,.36,1) both;
   }
   .dock button{
     display:inline-flex; align-items:center; gap:7px; border:1px solid var(--border); background:var(--bg-input);
-    color:var(--text); border-radius:10px; padding:9px 15px; font-size:12.5px; font-weight:700;
-    transition:background .15s ease, border-color .15s ease, color .15s ease;
+    color:var(--text); border-radius:11px; padding:9px 16px; font-size:12.5px; font-weight:700;
+    transition:background .18s ease, border-color .18s ease, color .18s ease, transform .12s ease;
   }
-  .dock button:hover{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+  .dock button:hover{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); transform:translateY(-1.5px); }
+  .dock button:active{ transform:translateY(0) scale(.96); }
   .dock button.is-muted{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
   .dock button.leave-btn{ background:var(--danger); border-color:var(--danger); color:#fff; }
-  .dock button.leave-btn:hover{ filter:brightness(1.08); color:#fff; }
+  .dock button.leave-btn:hover{ filter:brightness(1.1); color:#fff; }
   .dock .status{ font-size:11.5px; color:var(--text-muted); padding:0 6px; min-width:100px; text-align:center; font-family:'JetBrains Mono', monospace; }
 
-  /* ---------- toasts (mirrors Yappathon .toast) ---------- */
+  /* ---------- toasts ---------- */
   .toasts{ position:fixed; bottom:18px; right:18px; display:flex; flex-direction:column; gap:8px; z-index:300; }
   .toast{
     background:var(--bg-elevated); border:1px solid var(--border); border-left:3px solid var(--accent);
-    padding:10px 14px; border-radius:8px; font-size:13px; box-shadow:0 10px 30px var(--shadow);
-    max-width:280px; animation:toastIn .3s cubic-bezier(.22,1,.36,1) both;
+    padding:11px 15px; border-radius:10px; font-size:13px; box-shadow:0 14px 34px var(--shadow);
+    max-width:280px; animation:toastIn .32s cubic-bezier(.22,1,.36,1) both;
   }
+
+  /* ---------- nova-special ambient stars ---------- */
+  .nova-flash{ position:fixed; inset:0; z-index:9999; background:#fff; opacity:0; pointer-events:none; }
+  .nova-flash.active{ animation:novaFlash 1.3s ease-out forwards; }
+  .nova-stars{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0; transition:opacity .5s ease;
+    background-image:
+      radial-gradient(circle at 8% 18%, rgba(255,255,255,.95) 0 1px, transparent 1.8px),
+      radial-gradient(circle at 17% 72%, rgba(190,220,255,.82) 0 1px, transparent 1.7px),
+      radial-gradient(circle at 27% 31%, rgba(255,220,255,.88) 0 1.2px, transparent 1.9px),
+      radial-gradient(circle at 38% 84%, rgba(255,255,255,.78) 0 1px, transparent 1.7px),
+      radial-gradient(circle at 48% 16%, rgba(210,190,255,.9) 0 1.2px, transparent 2px),
+      radial-gradient(circle at 58% 61%, rgba(255,255,255,.86) 0 1px, transparent 1.7px),
+      radial-gradient(circle at 69% 25%, rgba(190,220,255,.9) 0 1.1px, transparent 1.8px),
+      radial-gradient(circle at 77% 78%, rgba(255,220,255,.8) 0 1.2px, transparent 2px),
+      radial-gradient(circle at 89% 42%, rgba(255,255,255,.92) 0 1px, transparent 1.7px),
+      radial-gradient(circle at 94% 91%, rgba(205,190,255,.8) 0 1.1px, transparent 1.9px);
+    animation:novaStars 8s ease-in-out infinite;
+  }
+  body[data-theme="nova-special"] .nova-stars{ opacity:.6; }
 
   @media(max-width:560px){
     .topbar{ padding:0 14px; }
-    .screen{ padding:26px 16px 70px; }
-    .entry-card{ padding:32px 24px; }
+    .screen{ padding:30px 16px 76px; }
+    .entry-card{ padding:34px 24px; }
+    .back-to-chat span.full{ display:none; }
   }
 </style>
 </head>
 <body>
+
+<div class="nova-stars"></div>
+<div class="nova-flash" id="novaFlash"></div>
 
 <div class="topbar">
   <span class="bubble-mark">
@@ -190,7 +283,24 @@
   </span>
   <span class="logo-word">Yappathon</span><span class="sub-word">Voice Cafe</span>
   <div class="topbar-spacer"></div>
-  <a class="btn back-to-chat" href="https://pbnjs0228-source.github.io/YAPPATHON/" target="_blank" rel="noopener noreferrer">← Back to Chat</a>
+  <a class="btn back-to-chat" href="https://pbnjs0228-source.github.io/YAPPATHON/" target="_blank" rel="noopener noreferrer">← <span class="full">Back to Chat</span></a>
+  <div class="theme-picker">
+    <button class="icon-btn" id="themeBtn" title="Themes" aria-label="Themes">
+      <svg class="ui-icon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1.2a1.8 1.8 0 0 0 1.1-3.2 1.8 1.8 0 0 1 1.1-3.2H18a3 3 0 0 0 3-3A8.9 8.9 0 0 0 12 3Z"/><circle cx="7.5" cy="10" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14" cy="7" r="1"/></svg>
+    </button>
+    <div class="theme-menu" id="themeMenu">
+      <div class="theme-opt" data-theme="yapp-dark"><span class="dot" style="background:#FF7A33"></span>Yapp Dark</div>
+      <div class="theme-opt" data-theme="yapp-light"><span class="dot" style="background:#E8590C"></span>Yapp Light</div>
+      <div class="theme-opt" data-theme="midnight"><span class="dot" style="background:#7C8CFF"></span>Midnight</div>
+      <div class="theme-opt" data-theme="forest"><span class="dot" style="background:#4FBE7B"></span>Forest</div>
+      <div class="theme-opt" data-theme="rose"><span class="dot" style="background:#FF6F9F"></span>Rose</div>
+      <div class="theme-opt" data-theme="ocean"><span class="dot" style="background:#39C6D8"></span>Ocean</div>
+      <div class="theme-opt" data-theme="lavender"><span class="dot" style="background:#B18CFF"></span>Lavender</div>
+      <div class="theme-opt" data-theme="sunset"><span class="dot" style="background:#FF9A4D"></span>Sunset</div>
+      <div class="theme-opt" data-theme="slate"><span class="dot" style="background:#A7B8CC"></span>Slate</div>
+      <div class="theme-opt" data-theme="nova-special"><span class="dot" style="background:#D66BFF"></span>The Nova Special</div>
+    </div>
+  </div>
   <div class="who hidden" id="whoBar">
     <img id="whoPhoto" alt="">
     <span id="whoName"></span>
@@ -204,8 +314,8 @@
     <span class="bubble-mark">
       <svg width="44" height="44" viewBox="0 0 64 64" fill="none"><path d="M8 16C8 11.58 11.58 8 16 8H48C52.42 8 56 11.58 56 16V36C56 40.42 52.42 44 48 44H26L14 54V44H16C11.58 44 8 40.42 8 36V16Z" fill="currentColor"/><circle cx="21" cy="26" r="3.4" fill="var(--bg-alt)"/><circle cx="32" cy="26" r="3.4" fill="var(--bg-alt)"/><circle cx="43" cy="26" r="3.4" fill="var(--bg-alt)"/></svg>
     </span>
-    <h1 id="entryHeading">Checking for your Yappathon session…</h1>
-    <p class="tag" id="entrySub">If you're already signed into Yappathon in this browser, we'll seat you automatically.</p>
+    <h1 id="entryHeading">Checking for your session</h1>
+    <p class="tag" id="entrySub">If you're already signed into Yappathon in this browser, we'll seat you automatically.<br><span class="checking-dots" id="checkingDots"><span></span><span></span><span></span></span></p>
 
     <div id="guest-block" class="hidden">
       <input id="nameInput" type="text" placeholder="What should we call you?" maxlength="24" autocomplete="off">
@@ -255,8 +365,6 @@ import {
   getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* Same Firebase project as Yappathon — Auth session persists per browser,
-   so if you're already signed in there, this app picks it up automatically. */
 const firebaseConfig = {
   apiKey: "AIzaSyD4rfKO1U_LAxKyrIrQuRXeI1saokMInhA",
   authDomain: "orangefox-ce8b1.firebaseapp.com",
@@ -296,8 +404,32 @@ function toast(msg){
   setTimeout(()=>el.remove(), 3600);
 }
 
-/* ---------------- avatar rendering — matches Yappathon's renderAvatar exactly,
-   so a fallback avatar for the same uid looks identical in both apps. ---------------- */
+/* ---------------- theme system — same tokens & localStorage key as
+   Yappathon, so a theme choice made in either app carries over. ---------------- */
+function triggerNovaFlash(){
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const flash = $('novaFlash');
+  flash.classList.remove('active');
+  void flash.offsetWidth;
+  flash.classList.add('active');
+  setTimeout(()=>flash.classList.remove('active'), 650);
+}
+function setTheme(t){
+  const previous = document.body.getAttribute('data-theme');
+  document.body.setAttribute('data-theme', t);
+  localStorage.setItem('yapp-theme', t);
+  document.querySelectorAll('.theme-opt').forEach(o=>o.classList.toggle('active', o.dataset.theme===t));
+  $('themeMenu').classList.remove('open');
+  if (t === 'nova-special' && previous !== 'nova-special') triggerNovaFlash();
+}
+$('themeBtn').addEventListener('click', ()=> $('themeMenu').classList.toggle('open'));
+document.addEventListener('click', e=>{ if(!e.target.closest('.theme-picker')) $('themeMenu').classList.remove('open'); });
+document.querySelectorAll('.theme-opt').forEach(opt=>{
+  opt.addEventListener('click', ()=> setTheme(opt.dataset.theme));
+});
+setTheme(localStorage.getItem('yapp-theme') || 'yapp-dark');
+
+/* ---------------- avatar rendering — matches Yappathon's renderAvatar ---------------- */
 function hashHue(str){
   let h = 0;
   for (let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h);
@@ -378,8 +510,9 @@ function settleIn(uid, name, photo, role){
 onAuthStateChanged(auth, async (user)=>{
   if(currentTable) return;
   if(!user){
+    $('checkingDots').classList.add('hidden');
     $('entryHeading').textContent = "Pull up a chair";
-    $('entrySub').textContent = "No Yappathon session found on this browser.";
+    $('entrySub').innerHTML = "No Yappathon session found on this browser.";
     $('guest-block').classList.remove('hidden');
     return;
   }
@@ -390,8 +523,9 @@ onAuthStateChanged(auth, async (user)=>{
       const name = pickName(data, user);
       if(name){ settleIn(user.uid, name, pickPhoto(data, user), data?.role); return; }
     }catch(e){}
+    $('checkingDots').classList.add('hidden');
     $('entryHeading').textContent = "Pull up a chair";
-    $('entrySub').textContent = "What should we call you?";
+    $('entrySub').innerHTML = "What should we call you?";
     $('guest-block').classList.remove('hidden');
     return;
   }
@@ -417,7 +551,7 @@ function renderLobby(){
       <span class="icon">${t.icon}</span>
       <h3>${t.name}</h3>
       <p class="desc">${t.desc}</p>
-      <div class="occ" data-occ="${t.id}">● 0 seated</div>
+      <div class="occ" data-occ="${t.id}"><span class="live-dot"></span> 0 seated</div>
       <div class="seats-preview" data-preview="${t.id}"></div>
       <button class="btn primary sit" data-sit="${t.id}">Sit down</button>
     `;
@@ -425,7 +559,7 @@ function renderLobby(){
     const unsub = onSnapshot(collection(db, 'voiceCafe', t.id, 'seats'), snap=>{
       const occEl = card.querySelector('[data-occ]');
       const prevEl = card.querySelector('[data-preview]');
-      occEl.textContent = `● ${snap.size} seated`;
+      occEl.innerHTML = `<span class="live-dot"></span> ${snap.size} seated`;
       prevEl.innerHTML = "";
       let i=0;
       snap.forEach(d=>{
@@ -601,7 +735,7 @@ function seatMarkup(uid){
   const speaking = !!speakingState[uid] && !(isSelf && muted);
   return `
     <div class="avatar-wrap ${speaking?'speaking':''}">
-      <div class="avatar"><img src="${avatarSrc(uid, d.name, d.photo, 68)}" alt=""></div>
+      <div class="avatar"><img src="${avatarSrc(uid, d.name, d.photo, 70)}" alt=""></div>
     </div>
     <div class="name">${d.name || 'Guest'}${d.role==='admin' ? ' <span class="role-crown">♛</span>' : ''}</div>
     ${isSelf && muted ? '<div class="mute-badge">muted</div>' : `<div class="tag">${isSelf?'you':'seated'}</div>`}
