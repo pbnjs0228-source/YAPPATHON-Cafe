@@ -385,7 +385,7 @@ import {
   getAuth, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion
+  getFirestore, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -486,9 +486,7 @@ const peerSessionIds = {};
 const peerSignalUnsubs = {};
 const remoteAudioEls = {};
 const unsubs = [];
-const inviteUnsubs = [];
 let mySessionId = null;
-let activeInvite = null;
 let seatsCache = {};
 let speakingState = {};
 
@@ -531,9 +529,14 @@ function settleIn(uid, name, photo, role){
   $('whoName').textContent = myName;
   $('whoPhoto').src = avatarSrc(myUid, myName, myPhoto, 22);
   $('whoCrown').classList.toggle('hidden', myRole !== 'admin');
-  setupInviteListeners();
   renderLobby();
-  show('lobbyScreen');
+  const invitedTable = getJoinTableFromUrl();
+  if (invitedTable) {
+    history.replaceState(null, '', window.location.pathname);
+    joinTable(invitedTable.id);
+  } else {
+    show('lobbyScreen');
+  }
 }
 
 onAuthStateChanged(auth, async (user)=>{
@@ -569,7 +572,114 @@ onAuthStateChanged(auth, async (user)=>{
   }
 });
 
-/* ---------------- Yappathon user invites ---------------- */\nfunction invitePath(tableId, uid){ return doc(db, 'voiceCafe', tableId, 'invites', uid); }\n\nfunction setupInviteListeners(){\n  while(inviteUnsubs.length) inviteUnsubs.pop()();\n  if(!myUid) return;\n  TABLES.forEach(t=>{\n    const unsub = onSnapshot(invitePath(t.id, myUid), snap=>{\n      if(!snap.exists()) return;\n      const data = snap.data() || {};\n      if(data.status !== 'ringing' || data.toUid !== myUid) return;\n      activeInvite = { ...data, tableId:t.id };\n      showIncomingInvite(activeInvite);\n    });\n    inviteUnsubs.push(unsub);\n  });\n}\n\nfunction closeInviteModal(){\n  $('inviteModal').classList.add('hidden');\n  $('inviteBody').innerHTML = '';\n}\n$('inviteClose').addEventListener('click', closeInviteModal);\n$('inviteModal').addEventListener('click', e=>{ if(e.target === $('inviteModal')) closeInviteModal(); });\n\nfunction showIncomingInvite(inv){\n  $('inviteTitle').textContent = 'Voice Cafe invite';\n  $('inviteBody').innerHTML = `\n    <p style="color:var(--text-muted);font-size:13px;line-height:1.5;margin:0 0 14px">\n      <strong style="color:var(--text)">${escapeHtml(inv.fromName || 'Someone')}</strong> invited you to <strong style="color:var(--text)">${escapeHtml(inv.tableName || inv.tableId)}</strong>.\n    </p>\n    <div class="invite-actions">\n      <button class="btn" id="declineInviteBtn">Decline</button>\n      <button class="btn primary" id="acceptInviteBtn">Join table</button>\n    </div>`;\n  $('inviteModal').classList.remove('hidden');\n  $('declineInviteBtn').onclick = async ()=>{\n    try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'declined', respondedAt:serverTimestamp()}); }catch(e){}\n    activeInvite = null; closeInviteModal();\n  };\n  $('acceptInviteBtn').onclick = async ()=>{\n    try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'accepted', respondedAt:serverTimestamp()}); }catch(e){}\n    activeInvite = null; closeInviteModal();\n    if(currentTable) await leaveTable();\n    await joinTable(inv.tableId);\n  };\n}\n\nfunction escapeHtml(value){\n  return String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));\n}\n\nasync function openInvitePicker(){\n  if(!currentTable || !myUid) return;\n  $('inviteTitle').textContent = `Invite to ${currentTable.name}`;\n  $('inviteBody').innerHTML = `<input class="invite-search" id="inviteSearch" placeholder="Search Yappathon users…" autocomplete="off"><div class="invite-list" id="inviteList"><div class="invite-empty">Loading Yappathon users…</div></div><div class="invite-actions"><button class="btn" id="inviteDone">Done</button></div>`;\n  $('inviteModal').classList.remove('hidden');\n  $('inviteDone').onclick = closeInviteModal;\n  try{\n    const snap = await getDocs(collection(db, 'users'));\n    const users = [];\n    snap.forEach(d=>{\n      if(d.id === myUid) return;\n      const u = d.data() || {};\n      const name = u.username || u.displayName || u.name || (u.email ? u.email.split('@')[0] : 'Yappathon user');\n      users.push({uid:d.id,name,photo:u.photoBase64 || u.photoURL || null,email:u.email || ''});\n    });\n    users.sort((a,b)=>a.name.localeCompare(b.name));\n    const list = $('inviteList');\n    const search = $('inviteSearch');\n    const render = ()=>{\n      const q = search.value.trim().toLowerCase();\n      const filtered = users.filter(u=>u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)).slice(0,100);\n      list.innerHTML = '';\n      if(!filtered.length){ list.innerHTML = '<div class="invite-empty">No matching Yappathon users.</div>'; return; }\n      filtered.forEach(u=>{\n        const row = document.createElement('div');\n        row.className = 'invite-user';\n        row.innerHTML = `<img src="${avatarSrc(u.uid,u.name,u.photo,34)}" alt=""><div class="invite-user-info"><div class="invite-user-name">${escapeHtml(u.name)}</div><div class="invite-user-sub">Yappathon user</div></div><button class="btn primary">Invite</button>`;\n        row.querySelector('button').onclick = async ()=>{\n          try{\n            await setDoc(invitePath(currentTable.id,u.uid), {uid:u.uid,toUid:u.uid,fromUid:myUid,fromName:myName,tableId:currentTable.id,tableName:currentTable.name,status:'ringing',createdAt:serverTimestamp()},{merge:true});\n            row.querySelector('button').textContent='Sent';\n            row.querySelector('button').disabled=true;\n          }catch(e){ toast("Couldn't send the invite."); }\n        };\n        list.appendChild(row);\n      });\n    };\n    search.addEventListener('input', render);\n    render();\n  }catch(e){\n    console.error(e);\n    $('inviteList').innerHTML = '<div class="invite-empty">Couldn’t load Yappathon users.</div>';\n  }\n}\n\n/* ---------------- lobby ---------------- */
+/* ---------------- Invite a Yappathon user via DM ----------------
+   Sends a normal DM message using the same dm-id scheme and Firestore
+   collections Yappathon's chat already writes to, with an extra
+   `cafeInvite` field. Yappathon's chat renders that field as a "Join
+   Table" card in the actual conversation; clicking it opens this page
+   with ?joinTable=<id>, which auto-seats the person via getJoinTableFromUrl(). */
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function dmIdFor(uidA, uidB){ return 'dm_' + [uidA, uidB].sort().join('_'); }
+
+async function sendCafeInvite(targetUid, targetName){
+  if (!currentTable || !myUid) throw new Error('Not seated at a table.');
+  const dmId = dmIdFor(myUid, targetUid);
+  const dmRef = doc(db, 'dms', dmId);
+  const dmSnap = await getDoc(dmRef);
+  if (!dmSnap.exists()) {
+    await setDoc(dmRef, {
+      type: 'dm',
+      members: [myUid, targetUid].sort(),
+      memberNames: { [myUid]: myName, [targetUid]: targetName },
+      createdAt: serverTimestamp()
+    });
+  }
+  await addDoc(collection(db, 'dms', dmId, 'messages'), {
+    uid: myUid,
+    username: myName,
+    role: myRole,
+    photoBase64: myPhoto || null,
+    text: null,
+    imageBase64: null,
+    mentions: [],
+    timestamp: serverTimestamp(),
+    cafeInvite: {
+      tableId: currentTable.id,
+      tableName: currentTable.name,
+      tableIcon: currentTable.icon,
+      fromUid: myUid,
+      fromName: myName
+    }
+  });
+}
+
+function closeInviteModal(){
+  $('inviteModal').classList.add('hidden');
+  $('inviteBody').innerHTML = '';
+}
+$('inviteClose').addEventListener('click', closeInviteModal);
+$('inviteModal').addEventListener('click', e => { if (e.target === $('inviteModal')) closeInviteModal(); });
+
+async function openInvitePicker(){
+  if (!currentTable || !myUid) return;
+  $('inviteTitle').textContent = `Invite to ${currentTable.name}`;
+  $('inviteBody').innerHTML = `<input class="invite-search" id="inviteSearch" placeholder="Search Yappathon users…" autocomplete="off"><div class="invite-list" id="inviteList"><div class="invite-empty">Loading Yappathon users…</div></div><div class="invite-actions"><button class="btn" id="inviteDone">Done</button></div>`;
+  $('inviteModal').classList.remove('hidden');
+  $('inviteDone').onclick = closeInviteModal;
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    const users = [];
+    snap.forEach(d => {
+      if (d.id === myUid) return;
+      const u = d.data() || {};
+      const name = u.username || u.displayName || u.name || (u.email ? u.email.split('@')[0] : 'Yappathon user');
+      users.push({ uid: d.id, name, photo: u.photoBase64 || u.photoURL || null, email: u.email || '' });
+    });
+    users.sort((a, b) => a.name.localeCompare(b.name));
+    const list = $('inviteList');
+    const search = $('inviteSearch');
+    const render = () => {
+      const q = search.value.trim().toLowerCase();
+      const filtered = users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)).slice(0, 100);
+      list.innerHTML = '';
+      if (!filtered.length) { list.innerHTML = '<div class="invite-empty">No matching Yappathon users.</div>'; return; }
+      filtered.forEach(u => {
+        const row = document.createElement('div');
+        row.className = 'invite-user';
+        row.innerHTML = `<img src="${avatarSrc(u.uid, u.name, u.photo, 34)}" alt=""><div class="invite-user-info"><div class="invite-user-name">${escapeHtml(u.name)}</div><div class="invite-user-sub">Sends a Join Table invite in Yappathon chat</div></div><button class="btn primary">Invite</button>`;
+        row.querySelector('button').onclick = async () => {
+          const btn = row.querySelector('button');
+          btn.disabled = true; btn.textContent = 'Sending…';
+          try {
+            await sendCafeInvite(u.uid, u.name);
+            btn.textContent = 'Sent ✓';
+          } catch (e) {
+            console.error(e);
+            toast("Couldn't send the invite.");
+            btn.disabled = false; btn.textContent = 'Invite';
+          }
+        };
+        list.appendChild(row);
+      });
+    };
+    search.addEventListener('input', render);
+    render();
+  } catch (e) {
+    console.error(e);
+    $('inviteList').innerHTML = '<div class="invite-empty">Couldn\u2019t load Yappathon users.</div>';
+  }
+}
+
+/* ---------------- joining a table via a shared/invite link ---------------- */
+function getJoinTableFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('joinTable');
+  return TABLES.find(t => t.id === id) || null;
+}
+
+/* ---------------- lobby ---------------- */
 function renderLobby(){
   const grid = $('tableGrid');
   grid.innerHTML = "";
