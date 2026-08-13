@@ -1,0 +1,100 @@
+name: Voice Cafe invites and leaving animation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/voice-cafe-invites.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch Voice Cafe
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          def replace_once(old, new, label):
+              global s
+              if old not in s:
+                  raise SystemExit(f'Missing patch anchor: {label}')
+              s = s.replace(old, new, 1)
+
+          replace_once(
+              "@keyframes cardIn { from{opacity:0; transform:translateY(16px) scale(.96);} to{opacity:1; transform:translateY(0) scale(1);} }",
+              "@keyframes cardIn { from{opacity:0; transform:translateY(16px) scale(.96);} to{opacity:1; transform:translateY(0) scale(1);} }\n  @keyframes seatLeave { from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(10px) scale(.88);} }",
+              'seatLeave keyframe')
+
+          replace_once(
+              "  .seat{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; animation:cardIn .4s cubic-bezier(.22,1,.36,1) both; }",
+              "  .seat{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; animation:cardIn .4s cubic-bezier(.22,1,.36,1) both; }\n  .seat.leaving{ animation:seatLeave .28s cubic-bezier(.4,0,1,1) forwards; pointer-events:none; }",
+              'seat leaving class')
+
+          # Add compact invite modal styling before the existing toasts styles.
+          anchor = '  .toasts{'
+          invite_css = '''  .invite-modal{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.58); backdrop-filter:blur(8px); animation:fadeIn .18s ease both; }\n  .invite-card{ width:min(440px,100%); max-height:min(620px,90vh); overflow:auto; background:var(--bg-elevated); border:1px solid var(--border); border-radius:18px; box-shadow:0 24px 80px var(--shadow); padding:20px; animation:cardIn .25s cubic-bezier(.22,1,.36,1) both; }\n  .invite-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }\n  .invite-head h3{ margin:0; font-size:18px; }\n  .invite-list{ display:grid; gap:7px; margin-top:12px; }\n  .invite-user{ display:flex; align-items:center; gap:10px; padding:9px; border:1px solid var(--border); border-radius:12px; background:var(--bg-alt); }\n  .invite-user img{ width:34px; height:34px; border-radius:50%; object-fit:cover; flex-shrink:0; }\n  .invite-user-info{ min-width:0; flex:1; }\n  .invite-user-name{ font-size:13px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }\n  .invite-user-sub{ color:var(--text-muted); font-size:11px; margin-top:2px; }\n  .invite-empty{ color:var(--text-muted); font-size:13px; padding:20px 4px; text-align:center; }\n  .invite-search{ width:100%; background:var(--bg-input); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:10px; outline:none; }\n  .invite-search:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }\n  .invite-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }\n'''
+          replace_once(anchor, invite_css + anchor, 'invite css')
+
+          replace_once(
+              '<button class="leave-link" id="leaveBtn">← Back to tables</button>',
+              '<div style="display:flex;align-items:center;gap:8px"><button class="btn" id="inviteBtn">＋ Invite</button><button class="leave-link" id="leaveBtn">← Back to tables</button></div>',
+              'room invite button')
+
+          replace_once(
+              '<div class="toasts" id="toastWrap"></div>',
+              '''<div class="invite-modal hidden" id="inviteModal">\n  <div class="invite-card" role="dialog" aria-modal="true">\n    <div class="invite-head"><h3 id="inviteTitle">Invite from Yappathon</h3><button class="leave-link" id="inviteClose">✕</button></div>\n    <div id="inviteBody"></div>\n  </div>\n</div>\n\n<div class="toasts" id="toastWrap"></div>''',
+              'invite modal')
+
+          replace_once(
+              "  getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion\n",
+              "  getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion\n",
+              'firestore imports')
+
+          replace_once(
+              "const unsubs = [];\nlet mySessionId = null;",
+              "const unsubs = [];\nconst inviteUnsubs = [];\nlet mySessionId = null;\nlet activeInvite = null;",
+              'invite state')
+
+          replace_once(
+              "  renderLobby();\n  show('lobbyScreen');\n}",
+              "  setupInviteListeners();\n  renderLobby();\n  show('lobbyScreen');\n}",
+              'invite listener setup')
+
+          # Add invite helpers before lobby section.
+          marker = '/* ---------------- lobby ---------------- */'
+          invite_js = r'''/* ---------------- Yappathon user invites ---------------- */\nfunction invitePath(tableId, uid){ return doc(db, 'voiceCafe', tableId, 'invites', uid); }\n\nfunction setupInviteListeners(){\n  while(inviteUnsubs.length) inviteUnsubs.pop()();\n  if(!myUid) return;\n  TABLES.forEach(t=>{\n    const unsub = onSnapshot(invitePath(t.id, myUid), snap=>{\n      if(!snap.exists()) return;\n      const data = snap.data() || {};\n      if(data.status !== 'ringing' || data.toUid !== myUid) return;\n      activeInvite = { ...data, tableId:t.id };\n      showIncomingInvite(activeInvite);\n    });\n    inviteUnsubs.push(unsub);\n  });\n}\n\nfunction closeInviteModal(){\n  $('inviteModal').classList.add('hidden');\n  $('inviteBody').innerHTML = '';\n}\n$('inviteClose').addEventListener('click', closeInviteModal);\n$('inviteModal').addEventListener('click', e=>{ if(e.target === $('inviteModal')) closeInviteModal(); });\n\nfunction showIncomingInvite(inv){\n  $('inviteTitle').textContent = 'Voice Cafe invite';\n  $('inviteBody').innerHTML = `\n    <p style="color:var(--text-muted);font-size:13px;line-height:1.5;margin:0 0 14px">\n      <strong style="color:var(--text)">${escapeHtml(inv.fromName || 'Someone')}</strong> invited you to <strong style="color:var(--text)">${escapeHtml(inv.tableName || inv.tableId)}</strong>.\n    </p>\n    <div class="invite-actions">\n      <button class="btn" id="declineInviteBtn">Decline</button>\n      <button class="btn primary" id="acceptInviteBtn">Join table</button>\n    </div>`;\n  $('inviteModal').classList.remove('hidden');\n  $('declineInviteBtn').onclick = async ()=>{\n    try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'declined', respondedAt:serverTimestamp()}); }catch(e){}\n    activeInvite = null; closeInviteModal();\n  };\n  $('acceptInviteBtn').onclick = async ()=>{\n    try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'accepted', respondedAt:serverTimestamp()}); }catch(e){}\n    activeInvite = null; closeInviteModal();\n    if(currentTable) await leaveTable();\n    await joinTable(inv.tableId);\n  };\n}\n\nfunction escapeHtml(value){\n  return String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));\n}\n\nasync function openInvitePicker(){\n  if(!currentTable || !myUid) return;\n  $('inviteTitle').textContent = `Invite to ${currentTable.name}`;\n  $('inviteBody').innerHTML = `<input class="invite-search" id="inviteSearch" placeholder="Search Yappathon users…" autocomplete="off"><div class="invite-list" id="inviteList"><div class="invite-empty">Loading Yappathon users…</div></div><div class="invite-actions"><button class="btn" id="inviteDone">Done</button></div>`;\n  $('inviteModal').classList.remove('hidden');\n  $('inviteDone').onclick = closeInviteModal;\n  try{\n    const snap = await getDocs(collection(db, 'users'));\n    const users = [];\n    snap.forEach(d=>{\n      if(d.id === myUid) return;\n      const u = d.data() || {};\n      const name = u.username || u.displayName || u.name || (u.email ? u.email.split('@')[0] : 'Yappathon user');\n      users.push({uid:d.id,name,photo:u.photoBase64 || u.photoURL || null,email:u.email || ''});\n    });\n    users.sort((a,b)=>a.name.localeCompare(b.name));\n    const list = $('inviteList');\n    const search = $('inviteSearch');\n    const render = ()=>{\n      const q = search.value.trim().toLowerCase();\n      const filtered = users.filter(u=>u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)).slice(0,100);\n      list.innerHTML = '';\n      if(!filtered.length){ list.innerHTML = '<div class="invite-empty">No matching Yappathon users.</div>'; return; }\n      filtered.forEach(u=>{\n        const row = document.createElement('div');\n        row.className = 'invite-user';\n        row.innerHTML = `<img src="${avatarSrc(u.uid,u.name,u.photo,34)}" alt=""><div class="invite-user-info"><div class="invite-user-name">${escapeHtml(u.name)}</div><div class="invite-user-sub">Yappathon user</div></div><button class="btn primary">Invite</button>`;\n        row.querySelector('button').onclick = async ()=>{\n          try{\n            await setDoc(invitePath(currentTable.id,u.uid), {uid:u.uid,toUid:u.uid,fromUid:myUid,fromName:myName,tableId:currentTable.id,tableName:currentTable.name,status:'ringing',createdAt:serverTimestamp()},{merge:true});\n            row.querySelector('button').textContent='Sent';\n            row.querySelector('button').disabled=true;\n          }catch(e){ toast("Couldn't send the invite."); }\n        };\n        list.appendChild(row);\n      });\n    };\n    search.addEventListener('input', render);\n    render();\n  }catch(e){\n    console.error(e);\n    $('inviteList').innerHTML = '<div class="invite-empty">Couldn’t load Yappathon users.</div>';\n  }\n}\n\n'''
+          replace_once(marker, invite_js + marker, 'invite helpers')
+
+          replace_once(
+              "$('leaveBtn').addEventListener('click', leaveTable);",
+              "$('inviteBtn').addEventListener('click', openInvitePicker);\n$('leaveBtn').addEventListener('click', leaveTable);",
+              'invite button handler')
+
+          # Animate remote departures instead of removing their node instantly.
+          old = """  Object.keys(seatEls).forEach(uid=>{\n    if(!seatsCache[uid]){ seatEls[uid].remove(); delete seatEls[uid]; }\n  });"""
+          new = """  Object.keys(seatEls).forEach(uid=>{\n    if(!seatsCache[uid] && !seatEls[uid].classList.contains('leaving')){\n      const leavingEl = seatEls[uid];\n      leavingEl.classList.add('leaving');\n      window.setTimeout(()=>{\n        if(seatEls[uid] === leavingEl){ leavingEl.remove(); delete seatEls[uid]; }\n      }, 300);\n    }\n  });"""
+          replace_once(old, new, 'leaving animation render')
+
+          # Animate the local user's exit before switching screens.
+          old_leave = """  const tableId = currentTable.id;\n  Object.keys(peers).forEach(teardownPeer);"""
+          new_leave = """  const tableId = currentTable.id;\n  const ownSeat = seatEls[myUid];\n  if(ownSeat){ ownSeat.classList.add('leaving'); await new Promise(r=>setTimeout(r,280)); }\n  Object.keys(peers).forEach(teardownPeer);"""
+          replace_once(old_leave, new_leave, 'local leaving animation')
+
+          p.write_text(s, encoding='utf-8')
+
+      - name: Commit patch and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm .github/workflows/voice-cafe-invites.yml
+          git commit -m "Add Voice Cafe leaving animation and Yappathon invites"
+          git push origin HEAD:main
