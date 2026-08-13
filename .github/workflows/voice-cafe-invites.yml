@@ -1,4 +1,4 @@
-name: Voice Cafe invites and leaving animation
+name: Finish Voice Cafe fixes
 
 on:
   workflow_dispatch:
@@ -14,39 +14,322 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Patch Voice Cafe
+      - name: Apply final Voice Cafe fixes
         shell: python
         run: |
           from pathlib import Path
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
-          def replace_once(old, new, label):
+
+          def once(old, new, label):
               global s
               if old not in s:
-                  raise SystemExit(f'Missing patch anchor: {label}')
+                  raise SystemExit('Missing anchor: ' + label)
               s = s.replace(old, new, 1)
-          replace_once("@keyframes cardIn { from{opacity:0; transform:translateY(16px) scale(.96);} to{opacity:1; transform:translateY(0) scale(1);} }", "@keyframes cardIn { from{opacity:0; transform:translateY(16px) scale(.96);} to{opacity:1; transform:translateY(0) scale(1);} }\n  @keyframes seatLeave { from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(10px) scale(.88);} }", 'seatLeave keyframe')
-          replace_once("  .seat{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; animation:cardIn .4s cubic-bezier(.22,1,.36,1) both; }", "  .seat{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; animation:cardIn .4s cubic-bezier(.22,1,.36,1) both; }\n  .seat.leaving{ animation:seatLeave .28s cubic-bezier(.4,0,1,1) forwards; pointer-events:none; }", 'seat leaving class')
-          invite_css = '''  .invite-modal{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.58); backdrop-filter:blur(8px); animation:fadeIn .18s ease both; }\n  .invite-card{ width:min(440px,100%); max-height:min(620px,90vh); overflow:auto; background:var(--bg-elevated); border:1px solid var(--border); border-radius:18px; box-shadow:0 24px 80px var(--shadow); padding:20px; animation:cardIn .25s cubic-bezier(.22,1,.36,1) both; }\n  .invite-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }\n  .invite-head h3{ margin:0; font-size:18px; }\n  .invite-list{ display:grid; gap:7px; margin-top:12px; }\n  .invite-user{ display:flex; align-items:center; gap:10px; padding:9px; border:1px solid var(--border); border-radius:12px; background:var(--bg-alt); }\n  .invite-user img{ width:34px; height:34px; border-radius:50%; object-fit:cover; flex-shrink:0; }\n  .invite-user-info{ min-width:0; flex:1; }\n  .invite-user-name{ font-size:13px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }\n  .invite-user-sub{ color:var(--text-muted); font-size:11px; margin-top:2px; }\n  .invite-empty{ color:var(--text-muted); font-size:13px; padding:20px 4px; text-align:center; }\n  .invite-search{ width:100%; background:var(--bg-input); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:10px; outline:none; }\n  .invite-search:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }\n  .invite-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }\n'''
-          replace_once('  .toasts{', invite_css + '  .toasts{', 'invite css')
-          replace_once('<button class="leave-link" id="leaveBtn">← Back to tables</button>', '<div style="display:flex;align-items:center;gap:8px"><button class="btn" id="inviteBtn">＋ Invite</button><button class="leave-link" id="leaveBtn">← Back to tables</button></div>', 'room invite button')
-          replace_once('<div class="toasts" id="toastWrap"></div>', '''<div class="invite-modal hidden" id="inviteModal">\n  <div class="invite-card" role="dialog" aria-modal="true">\n    <div class="invite-head"><h3 id="inviteTitle">Invite from Yappathon</h3><button class="leave-link" id="inviteClose">✕</button></div>\n    <div id="inviteBody"></div>\n  </div>\n</div>\n\n<div class="toasts" id="toastWrap"></div>''', 'invite modal')
-          replace_once("  getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion\n", "  getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion\n", 'firestore imports')
-          replace_once("const unsubs = [];\nlet mySessionId = null;", "const unsubs = [];\nconst inviteUnsubs = [];\nlet mySessionId = null;\nlet activeInvite = null;", 'invite state')
-          replace_once("  renderLobby();\n  show('lobbyScreen');\n}", "  setupInviteListeners();\n  renderLobby();\n  show('lobbyScreen');\n}", 'invite listener setup')
-          marker = '/* ---------------- lobby ---------------- */'
-          invite_js = r'''/* ---------------- Yappathon user invites ---------------- */\nfunction invitePath(tableId, uid){ return doc(db, 'voiceCafe', tableId, 'invites', uid); }\nfunction setupInviteListeners(){\n  while(inviteUnsubs.length) inviteUnsubs.pop()();\n  if(!myUid) return;\n  TABLES.forEach(t=>{\n    const unsub = onSnapshot(invitePath(t.id, myUid), snap=>{\n      if(!snap.exists()) return;\n      const data = snap.data() || {};\n      if(data.status !== 'ringing' || data.toUid !== myUid) return;\n      activeInvite = { ...data, tableId:t.id };\n      showIncomingInvite(activeInvite);\n    });\n    inviteUnsubs.push(unsub);\n  });\n}\nfunction closeInviteModal(){ $('inviteModal').classList.add('hidden'); $('inviteBody').innerHTML = ''; }\n$('inviteClose').addEventListener('click', closeInviteModal);\n$('inviteModal').addEventListener('click', e=>{ if(e.target === $('inviteModal')) closeInviteModal(); });\nfunction showIncomingInvite(inv){\n  $('inviteTitle').textContent = 'Voice Cafe invite';\n  $('inviteBody').innerHTML = `<p style="color:var(--text-muted);font-size:13px;line-height:1.5;margin:0 0 14px"><strong style="color:var(--text)">${escapeHtml(inv.fromName || 'Someone')}</strong> invited you to <strong style="color:var(--text)">${escapeHtml(inv.tableName || inv.tableId)}</strong>.</p><div class="invite-actions"><button class="btn" id="declineInviteBtn">Decline</button><button class="btn primary" id="acceptInviteBtn">Join table</button></div>`;\n  $('inviteModal').classList.remove('hidden');\n  $('declineInviteBtn').onclick = async ()=>{ try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'declined', respondedAt:serverTimestamp()}); }catch(e){} activeInvite=null; closeInviteModal(); };\n  $('acceptInviteBtn').onclick = async ()=>{ try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'accepted', respondedAt:serverTimestamp()}); }catch(e){} activeInvite=null; closeInviteModal(); if(currentTable) await leaveTable(); await joinTable(inv.tableId); };\n}\nfunction escapeHtml(value){ return String(value ?? '').replace(/[&<>\"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c])); }\nasync function openInvitePicker(){\n  if(!currentTable || !myUid) return;\n  $('inviteTitle').textContent = `Invite to ${currentTable.name}`;\n  $('inviteBody').innerHTML = `<input class="invite-search" id="inviteSearch" placeholder="Search Yappathon users…" autocomplete="off"><div class="invite-list" id="inviteList"><div class="invite-empty">Loading Yappathon users…</div></div><div class="invite-actions"><button class="btn" id="inviteDone">Done</button></div>`;\n  $('inviteModal').classList.remove('hidden'); $('inviteDone').onclick=closeInviteModal;\n  try{\n    const snap=await getDocs(collection(db,'users')); const users=[];\n    snap.forEach(d=>{ if(d.id===myUid)return; const u=d.data()||{}; const name=u.username||u.displayName||u.name||(u.email?u.email.split('@')[0]:'Yappathon user'); users.push({uid:d.id,name,photo:u.photoBase64||u.photoURL||null,email:u.email||''}); });\n    users.sort((a,b)=>a.name.localeCompare(b.name));\n    const list=$('inviteList'), search=$('inviteSearch');\n    const render=()=>{ const q=search.value.trim().toLowerCase(); const filtered=users.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)).slice(0,100); list.innerHTML=''; if(!filtered.length){list.innerHTML='<div class="invite-empty">No matching Yappathon users.</div>';return;} filtered.forEach(u=>{ const row=document.createElement('div'); row.className='invite-user'; row.innerHTML=`<img src="${avatarSrc(u.uid,u.name,u.photo,34)}" alt=""><div class="invite-user-info"><div class="invite-user-name">${escapeHtml(u.name)}</div><div class="invite-user-sub">Yappathon user</div></div><button class="btn primary">Invite</button>`; row.querySelector('button').onclick=async()=>{ try{ await setDoc(invitePath(currentTable.id,u.uid),{uid:u.uid,toUid:u.uid,fromUid:myUid,fromName:myName,tableId:currentTable.id,tableName:currentTable.name,status:'ringing',createdAt:serverTimestamp()},{merge:true}); row.querySelector('button').textContent='Sent'; row.querySelector('button').disabled=true; }catch(e){toast("Couldn't send the invite.");} }; list.appendChild(row); }); };\n    search.addEventListener('input',render); render();\n  }catch(e){ console.error(e); $('inviteList').innerHTML='<div class="invite-empty">Couldn’t load Yappathon users.</div>'; }\n}\n\n'''
-          replace_once(marker, invite_js + marker, 'invite helpers')
-          replace_once("$('leaveBtn').addEventListener('click', leaveTable);", "$('inviteBtn').addEventListener('click', openInvitePicker);\n$('leaveBtn').addEventListener('click', leaveTable);", 'invite button handler')
-          replace_once("""  Object.keys(seatEls).forEach(uid=>{\n    if(!seatsCache[uid]){ seatEls[uid].remove(); delete seatEls[uid]; }\n  });""", """  Object.keys(seatEls).forEach(uid=>{\n    if(!seatsCache[uid] && !seatEls[uid].classList.contains('leaving')){ const leavingEl=seatEls[uid]; leavingEl.classList.add('leaving'); window.setTimeout(()=>{ if(seatEls[uid]===leavingEl){ leavingEl.remove(); delete seatEls[uid]; } },300); }\n  });""", 'leaving animation render')
-          replace_once("""  const tableId = currentTable.id;\n  Object.keys(peers).forEach(teardownPeer);""", """  const tableId = currentTable.id;\n  const ownSeat = seatEls[myUid];\n  if(ownSeat){ ownSeat.classList.add('leaving'); await new Promise(r=>setTimeout(r,280)); }\n  Object.keys(peers).forEach(teardownPeer);""", 'local leaving animation')
+
+          # Repair the invite block written by the earlier patch. It must contain real newlines,
+          # not literal backslash-n characters, or the module will not parse.
+          start = '/* ---------------- Yappathon user invites ---------------- */'
+          end = '/* ---------------- lobby ---------------- */'
+          a = s.find(start)
+          b = s.find(end, a)
+          if a < 0 or b < 0:
+              raise SystemExit('Missing invite/lobby block')
+          invite_block = '''/* ---------------- Yappathon user invites ---------------- */
+          function invitePath(tableId, uid){ return doc(db, 'voiceCafe', tableId, 'invites', uid); }
+
+          function setupInviteListeners(){
+            while(inviteUnsubs.length) inviteUnsubs.pop()();
+            if(!myUid) return;
+            TABLES.forEach(t=>{
+              const unsub = onSnapshot(invitePath(t.id, myUid), snap=>{
+                if(!snap.exists()) return;
+                const data = snap.data() || {};
+                if(data.status !== 'ringing' || data.toUid !== myUid) return;
+                activeInvite = { ...data, tableId:t.id };
+                showIncomingInvite(activeInvite);
+              });
+              inviteUnsubs.push(unsub);
+            });
+          }
+
+          function closeInviteModal(){
+            $('inviteModal').classList.add('hidden');
+            $('inviteBody').innerHTML = '';
+          }
+
+          $('inviteClose').addEventListener('click', closeInviteModal);
+          $('inviteModal').addEventListener('click', e=>{
+            if(e.target === $('inviteModal')) closeInviteModal();
+          });
+
+          function escapeHtml(value){
+            return String(value ?? '').replace(/[&<>"']/g, c=>({
+              '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+            }[c]));
+          }
+
+          function showIncomingInvite(inv){
+            $('inviteTitle').textContent = 'Voice Cafe invite';
+            $('inviteBody').innerHTML = `
+              <p style="color:var(--text-muted);font-size:13px;line-height:1.5;margin:0 0 14px">
+                <strong style="color:var(--text)">${escapeHtml(inv.fromName || 'Someone')}</strong> invited you to
+                <strong style="color:var(--text)">${escapeHtml(inv.tableName || inv.tableId)}</strong>.
+              </p>
+              <div class="invite-actions">
+                <button class="btn" id="declineInviteBtn">Decline</button>
+                <button class="btn primary" id="acceptInviteBtn">Join table</button>
+              </div>`;
+            $('inviteModal').classList.remove('hidden');
+            $('declineInviteBtn').onclick = async ()=>{
+              try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'declined', respondedAt:serverTimestamp()}); }catch(e){}
+              activeInvite = null;
+              closeInviteModal();
+            };
+            $('acceptInviteBtn').onclick = async ()=>{
+              try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'accepted', respondedAt:serverTimestamp()}); }catch(e){}
+              activeInvite = null;
+              closeInviteModal();
+              if(currentTable) await leaveTable();
+              await joinTable(inv.tableId);
+            };
+          }
+
+          async function openInvitePicker(){
+            if(!currentTable || !myUid) return;
+            $('inviteTitle').textContent = `Invite to ${currentTable.name}`;
+            $('inviteBody').innerHTML = `
+              <input class="invite-search" id="inviteSearch" placeholder="Search Yappathon users…" autocomplete="off">
+              <div class="invite-list" id="inviteList"><div class="invite-empty">Loading Yappathon users…</div></div>
+              <div class="invite-actions"><button class="btn" id="inviteDone">Done</button></div>`;
+            $('inviteModal').classList.remove('hidden');
+            $('inviteDone').onclick = closeInviteModal;
+            try{
+              const snap = await getDocs(collection(db, 'users'));
+              const users = [];
+              snap.forEach(d=>{
+                if(d.id === myUid) return;
+                const u = d.data() || {};
+                const name = u.username || u.displayName || u.name || (u.email ? u.email.split('@')[0] : 'Yappathon user');
+                users.push({uid:d.id, name, photo:u.photoBase64 || u.photoURL || null, email:u.email || ''});
+              });
+              users.sort((a,b)=>a.name.localeCompare(b.name));
+              const list = $('inviteList');
+              const search = $('inviteSearch');
+              const render = ()=>{
+                const q = search.value.trim().toLowerCase();
+                const filtered = users.filter(u=>u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)).slice(0,100);
+                list.innerHTML = '';
+                if(!filtered.length){
+                  list.innerHTML = '<div class="invite-empty">No matching Yappathon users.</div>';
+                  return;
+                }
+                filtered.forEach(u=>{
+                  const row = document.createElement('div');
+                  row.className = 'invite-user';
+                  row.innerHTML = `<img src="${avatarSrc(u.uid,u.name,u.photo,34)}" alt=""><div class="invite-user-info"><div class="invite-user-name">${escapeHtml(u.name)}</div><div class="invite-user-sub">Yappathon user</div></div><button class="btn primary">Invite</button>`;
+                  row.querySelector('button').onclick = async ()=>{
+                    try{
+                      await setDoc(invitePath(currentTable.id,u.uid), {
+                        uid:u.uid, toUid:u.uid, fromUid:myUid, fromName:myName,
+                        tableId:currentTable.id, tableName:currentTable.name,
+                        status:'ringing', createdAt:serverTimestamp()
+                      }, {merge:true});
+                      row.querySelector('button').textContent = 'Sent';
+                      row.querySelector('button').disabled = true;
+                    }catch(e){ toast("Couldn't send the invite."); }
+                  };
+                  list.appendChild(row);
+                });
+              };
+              search.addEventListener('input', render);
+              render();
+            }catch(e){
+              console.error(e);
+              $('inviteList').innerHTML = '<div class="invite-empty">Couldn’t load Yappathon users.</div>';
+            }
+          }
+
+          '''
+          s = s[:a] + invite_block + s[b:]
+
+          # Give every visit to a room a new membership/session id.
+          once("  await setDoc(doc(db, 'voiceCafe', table.id, 'seats', myUid), {\n    name: myName, photo: myPhoto || null, role: myRole, joinedAt: serverTimestamp()\n  });", """  mySessionId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  await setDoc(doc(db, 'voiceCafe', table.id, 'seats', myUid), {
+    name: myName, photo: myPhoto || null, role: myRole,
+    sessionId: mySessionId, joinedAt: serverTimestamp()
+  });""", 'room session id')
+
+          # Replace the seat snapshot with authoritative membership state and session-aware peers.
+          old_join = """  const seatsUnsub = onSnapshot(collection(db, 'voiceCafe', table.id, 'seats'), snap=>{
+    const liveUids = new Set();
+    snap.forEach(d=>{
+      liveUids.add(d.id);
+      seatsCache[d.id] = d.data();
+      if(d.id !== myUid && !peers[d.id]) connectToPeer(table.id, d.id);
+    });
+    Object.keys(peers).forEach(uid=>{ if(!liveUids.has(uid)) teardownPeer(uid); });
+    renderSeats();
+  });"""
+          new_join = """  const seatsUnsub = onSnapshot(collection(db, 'voiceCafe', table.id, 'seats'), snap=>{
+    const nextSeats = {};
+    const liveUids = new Set();
+    snap.forEach(d=>{
+      const data = d.data() || {};
+      liveUids.add(d.id);
+      nextSeats[d.id] = data;
+      if(d.id !== myUid){
+        const sessionId = data.sessionId || 'legacy';
+        if(!peers[d.id]) connectToPeer(table.id, d.id, sessionId);
+        else if(peerSessionIds[d.id] !== sessionId){
+          teardownPeer(d.id);
+          connectToPeer(table.id, d.id, sessionId);
+        }
+      }
+    });
+    seatsCache = nextSeats;
+    Object.keys(peers).forEach(uid=>{ if(!liveUids.has(uid)) teardownPeer(uid); });
+    Object.keys(speakingState).forEach(uid=>{ if(!liveUids.has(uid)) delete speakingState[uid]; });
+    renderSeats();
+  });"""
+          once(old_join, new_join, 'authoritative seats snapshot')
+
+          # Replace the old Firestore/WebRTC signaling implementation.
+          ws = s.find('/* ---------------- WebRTC signaling via Firestore ---------------- */')
+          we = s.find('/* ---------------- volume / speaking detection (with hysteresis) ---------------- */', ws)
+          if ws < 0 or we < 0:
+              raise SystemExit('Missing WebRTC block')
+          webRTC = '''/* ---------------- WebRTC signaling via Firestore ---------------- */
+          function pairId(a,aSession,b,bSession){
+            return [`${a}:${aSession}`, `${b}:${bSession}`].sort().join('__');
+          }
+
+          function connectToPeer(tableId, otherUid, otherSessionId){
+            if(!localStream || peers[otherUid]) return;
+            const pc = new RTCPeerConnection(ICE_SERVERS);
+            peers[otherUid] = pc;
+            peerSessionIds[otherUid] = otherSessionId;
+            localStream.getTracks().forEach(track=>pc.addTrack(track, localStream));
+
+            const remoteStream = new MediaStream();
+            const audioEl = document.createElement('audio');
+            audioEl.autoplay = true;
+            audioEl.playsInline = true;
+            audioEl.dataset.uid = otherUid;
+            document.body.appendChild(audioEl);
+            audioEl.srcObject = remoteStream;
+            remoteAudioEls[otherUid] = audioEl;
+
+            pc.ontrack = e=>{
+              e.streams[0].getTracks().forEach(t=>remoteStream.addTrack(t));
+              monitorRemoteVolume(otherUid, remoteStream);
+              audioEl.play().catch(()=>{});
+            };
+
+            const iAmInitiator = myUid < otherUid;
+            const pid = pairId(myUid,mySessionId,otherUid,otherSessionId);
+            const sigRef = doc(db,'voiceCafe',tableId,'signals',pid);
+            const myCandField = iAmInitiator ? 'candidatesA' : 'candidatesB';
+            const theirCandField = iAmInitiator ? 'candidatesB' : 'candidatesA';
+            const pendingCandidates = [];
+            let appliedCandidateCount = 0;
+            let remoteDescriptionReady = false;
+
+            pc.onicecandidate = e=>{
+              if(e.candidate){
+                setDoc(sigRef,{[myCandField]:arrayUnion(JSON.stringify(e.candidate))},{merge:true}).catch(()=>{});
+              }
+            };
+
+            const applyCandidates = async candidates=>{
+              if(!remoteDescriptionReady || !pc.remoteDescription) return;
+              while(pendingCandidates.length){
+                try{ await pc.addIceCandidate(pendingCandidates.shift()); }catch(e){}
+              }
+              for(let i=appliedCandidateCount;i<candidates.length;i++){
+                try{ await pc.addIceCandidate(JSON.parse(candidates[i])); }catch(e){}
+              }
+              appliedCandidateCount = candidates.length;
+            };
+
+            const sigUnsub = onSnapshot(sigRef,async snap=>{
+              const data = snap.data();
+              if(!data || pc.signalingState === 'closed') return;
+              try{
+                if(!iAmInitiator && data.offer && !pc.currentRemoteDescription){
+                  await pc.setRemoteDescription(JSON.parse(data.offer));
+                  remoteDescriptionReady = true;
+                  const answer = await pc.createAnswer();
+                  await pc.setLocalDescription(answer);
+                  await setDoc(sigRef,{answer:JSON.stringify(answer)},{merge:true});
+                }else if(iAmInitiator && data.answer && !pc.currentRemoteDescription){
+                  await pc.setRemoteDescription(JSON.parse(data.answer));
+                  remoteDescriptionReady = true;
+                }
+                const theirCands = data[theirCandField] || [];
+                if(remoteDescriptionReady){
+                  while(pendingCandidates.length){
+                    try{ await pc.addIceCandidate(pendingCandidates.shift()); }catch(e){}
+                  }
+                  for(let i=appliedCandidateCount;i<theirCands.length;i++){
+                    try{ await pc.addIceCandidate(JSON.parse(theirCands[i])); }catch(e){}
+                  }
+                  appliedCandidateCount = theirCands.length;
+                }
+              }catch(e){ console.warn('WebRTC signaling error',e); }
+            });
+            peerSignalUnsubs[otherUid] = sigUnsub;
+
+            if(iAmInitiator){
+              (async()=>{
+                try{
+                  const offer = await pc.createOffer();
+                  await pc.setLocalDescription(offer);
+                  await setDoc(sigRef,{offer:JSON.stringify(offer)},{merge:true});
+                }catch(e){ console.warn('WebRTC offer error',e); }
+              })();
+            }
+          }
+
+          function teardownPeer(uid){
+            if(peerSignalUnsubs[uid]){
+              peerSignalUnsubs[uid]();
+              delete peerSignalUnsubs[uid];
+            }
+            if(peers[uid]){
+              peers[uid].ontrack = null;
+              peers[uid].onicecandidate = null;
+              peers[uid].close();
+              delete peers[uid];
+            }
+            delete peerSessionIds[uid];
+            if(remoteAudioEls[uid]){
+              remoteAudioEls[uid].srcObject = null;
+              remoteAudioEls[uid].remove();
+              delete remoteAudioEls[uid];
+            }
+            delete speakingState[uid];
+            renderSeats();
+          }
+
+          '''
+          s = s[:ws] + webRTC + s[we:]
+
+          # Make the local leave animation happen before tearing down the room.
+          once("  const tableId = currentTable.id;\n  Object.keys(peers).forEach(teardownPeer);", """  const tableId = currentTable.id;
+  const ownSeat = seatEls[myUid];
+  if(ownSeat && !ownSeat.classList.contains('leaving')){
+    ownSeat.classList.add('leaving');
+    await new Promise(r=>setTimeout(r,280));
+  }
+  Object.keys(peers).forEach(teardownPeer);""", 'local leave animation')
+
           p.write_text(s, encoding='utf-8')
-      - name: Commit patch and remove temporary workflow
+      - name: Commit and remove temporary workflow
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           git rm .github/workflows/voice-cafe-invites.yml
-          git commit -m "Add Voice Cafe leaving animation and Yappathon invites"
+          git commit -m "Fix Voice Cafe invites and WebRTC reconnection"
           git push origin HEAD:main
