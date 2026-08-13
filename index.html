@@ -613,6 +613,21 @@ async function sendCafeInvite(targetUid, targetName){
       fromName: myName
     }
   });
+
+  // Drives the real-time popup on Yappathon's side (works even if the
+  // invitee doesn't have this DM open) — the message above is the
+  // permanent record in chat.
+  await addDoc(collection(db, 'cafeInvites'), {
+    toUid: targetUid,
+    fromUid: myUid,
+    fromName: myName,
+    fromPhoto: myPhoto || null,
+    tableId: currentTable.id,
+    tableName: currentTable.name,
+    tableIcon: currentTable.icon,
+    status: 'pending',
+    createdAt: serverTimestamp()
+  });
 }
 
 function closeInviteModal(){
