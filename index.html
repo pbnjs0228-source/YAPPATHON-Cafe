@@ -56,6 +56,7 @@
 
   @keyframes bgDrift { 0%,100%{background-position:15% 20%, 85% 80%;} 50%{background-position:20% 26%, 80% 74%;} }
   @keyframes cardIn { from{opacity:0; transform:translateY(16px) scale(.96);} to{opacity:1; transform:translateY(0) scale(1);} }
+  @keyframes seatLeave { from{opacity:1; transform:translateY(0) scale(1);} to{opacity:0; transform:translateY(10px) scale(.88);} }
   @keyframes fadeSlideUp { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
   @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
   @keyframes scaleIn { from{opacity:0; transform:scale(.9);} to{opacity:1; transform:scale(1);} }
@@ -207,6 +208,7 @@
   .seats-area::before{ background:radial-gradient(circle at 25% 25%, var(--glow-a), transparent 40%), radial-gradient(circle at 78% 72%, var(--glow-b), transparent 34%); animation:ambientGlow 14s ease-in-out infinite; }
   .seats-area::after{ background:radial-gradient(circle at 78% 22%, var(--glow-b), transparent 34%), radial-gradient(circle at 22% 78%, var(--glow-a), transparent 38%); animation:ambientGlow2 18s ease-in-out infinite; }
   .seat{ position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; animation:cardIn .4s cubic-bezier(.22,1,.36,1) both; }
+  .seat.leaving{ animation:seatLeave .28s cubic-bezier(.4,0,1,1) forwards; pointer-events:none; }
   .avatar-wrap{ position:relative; width:70px; height:70px; }
   .avatar{ width:70px; height:70px; border-radius:50%; display:block; overflow:hidden; border:2px solid var(--bg-alt); background:var(--accent); transition:border-color .2s ease, transform .2s cubic-bezier(.22,1,.36,1); }
   .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
@@ -238,6 +240,20 @@
   .dock .status{ font-size:11.5px; color:var(--text-muted); padding:0 6px; min-width:100px; text-align:center; font-family:'JetBrains Mono', monospace; }
 
   /* ---------- toasts ---------- */
+  .invite-modal{ position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.58); backdrop-filter:blur(8px); animation:fadeIn .18s ease both; }
+  .invite-card{ width:min(440px,100%); max-height:min(620px,90vh); overflow:auto; background:var(--bg-elevated); border:1px solid var(--border); border-radius:18px; box-shadow:0 24px 80px var(--shadow); padding:20px; animation:cardIn .25s cubic-bezier(.22,1,.36,1) both; }
+  .invite-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+  .invite-head h3{ margin:0; font-size:18px; }
+  .invite-list{ display:grid; gap:7px; margin-top:12px; }
+  .invite-user{ display:flex; align-items:center; gap:10px; padding:9px; border:1px solid var(--border); border-radius:12px; background:var(--bg-alt); }
+  .invite-user img{ width:34px; height:34px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+  .invite-user-info{ min-width:0; flex:1; }
+  .invite-user-name{ font-size:13px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .invite-user-sub{ color:var(--text-muted); font-size:11px; margin-top:2px; }
+  .invite-empty{ color:var(--text-muted); font-size:13px; padding:20px 4px; text-align:center; }
+  .invite-search{ width:100%; background:var(--bg-input); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:10px; outline:none; }
+  .invite-search:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .invite-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
   .toasts{ position:fixed; bottom:18px; right:18px; display:flex; flex-direction:column; gap:8px; z-index:300; }
   .toast{
     background:var(--bg-elevated); border:1px solid var(--border); border-left:3px solid var(--accent);
@@ -343,7 +359,7 @@
         <span class="icon" id="roomIcon">☕</span>
         <h2 id="roomName">Table</h2>
       </div>
-      <button class="leave-link" id="leaveBtn">← Back to tables</button>
+      <div style="display:flex;align-items:center;gap:8px"><button class="btn" id="inviteBtn">＋ Invite</button><button class="leave-link" id="leaveBtn">← Back to tables</button></div>
     </div>
     <div class="seats-area" id="seatsArea"></div>
     <div class="dock">
@@ -351,6 +367,13 @@
       <span class="status" id="dockStatus">Connecting…</span>
       <button class="leave-btn" id="leaveBtn2">☎ Leave</button>
     </div>
+  </div>
+</div>
+
+<div class="invite-modal hidden" id="inviteModal">
+  <div class="invite-card" role="dialog" aria-modal="true">
+    <div class="invite-head"><h3 id="inviteTitle">Invite from Yappathon</h3><button class="leave-link" id="inviteClose">✕</button></div>
+    <div id="inviteBody"></div>
   </div>
 </div>
 
@@ -362,7 +385,7 @@ import {
   getAuth, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion
+  getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -463,7 +486,9 @@ const peerSessionIds = {};
 const peerSignalUnsubs = {};
 const remoteAudioEls = {};
 const unsubs = [];
+const inviteUnsubs = [];
 let mySessionId = null;
+let activeInvite = null;
 let seatsCache = {};
 let speakingState = {};
 
@@ -506,6 +531,7 @@ function settleIn(uid, name, photo, role){
   $('whoName').textContent = myName;
   $('whoPhoto').src = avatarSrc(myUid, myName, myPhoto, 22);
   $('whoCrown').classList.toggle('hidden', myRole !== 'admin');
+  setupInviteListeners();
   renderLobby();
   show('lobbyScreen');
 }
@@ -543,7 +569,7 @@ onAuthStateChanged(auth, async (user)=>{
   }
 });
 
-/* ---------------- lobby ---------------- */
+/* ---------------- Yappathon user invites ---------------- */\nfunction invitePath(tableId, uid){ return doc(db, 'voiceCafe', tableId, 'invites', uid); }\n\nfunction setupInviteListeners(){\n  while(inviteUnsubs.length) inviteUnsubs.pop()();\n  if(!myUid) return;\n  TABLES.forEach(t=>{\n    const unsub = onSnapshot(invitePath(t.id, myUid), snap=>{\n      if(!snap.exists()) return;\n      const data = snap.data() || {};\n      if(data.status !== 'ringing' || data.toUid !== myUid) return;\n      activeInvite = { ...data, tableId:t.id };\n      showIncomingInvite(activeInvite);\n    });\n    inviteUnsubs.push(unsub);\n  });\n}\n\nfunction closeInviteModal(){\n  $('inviteModal').classList.add('hidden');\n  $('inviteBody').innerHTML = '';\n}\n$('inviteClose').addEventListener('click', closeInviteModal);\n$('inviteModal').addEventListener('click', e=>{ if(e.target === $('inviteModal')) closeInviteModal(); });\n\nfunction showIncomingInvite(inv){\n  $('inviteTitle').textContent = 'Voice Cafe invite';\n  $('inviteBody').innerHTML = `\n    <p style="color:var(--text-muted);font-size:13px;line-height:1.5;margin:0 0 14px">\n      <strong style="color:var(--text)">${escapeHtml(inv.fromName || 'Someone')}</strong> invited you to <strong style="color:var(--text)">${escapeHtml(inv.tableName || inv.tableId)}</strong>.\n    </p>\n    <div class="invite-actions">\n      <button class="btn" id="declineInviteBtn">Decline</button>\n      <button class="btn primary" id="acceptInviteBtn">Join table</button>\n    </div>`;\n  $('inviteModal').classList.remove('hidden');\n  $('declineInviteBtn').onclick = async ()=>{\n    try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'declined', respondedAt:serverTimestamp()}); }catch(e){}\n    activeInvite = null; closeInviteModal();\n  };\n  $('acceptInviteBtn').onclick = async ()=>{\n    try{ await updateDoc(invitePath(inv.tableId, myUid), {status:'accepted', respondedAt:serverTimestamp()}); }catch(e){}\n    activeInvite = null; closeInviteModal();\n    if(currentTable) await leaveTable();\n    await joinTable(inv.tableId);\n  };\n}\n\nfunction escapeHtml(value){\n  return String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));\n}\n\nasync function openInvitePicker(){\n  if(!currentTable || !myUid) return;\n  $('inviteTitle').textContent = `Invite to ${currentTable.name}`;\n  $('inviteBody').innerHTML = `<input class="invite-search" id="inviteSearch" placeholder="Search Yappathon users…" autocomplete="off"><div class="invite-list" id="inviteList"><div class="invite-empty">Loading Yappathon users…</div></div><div class="invite-actions"><button class="btn" id="inviteDone">Done</button></div>`;\n  $('inviteModal').classList.remove('hidden');\n  $('inviteDone').onclick = closeInviteModal;\n  try{\n    const snap = await getDocs(collection(db, 'users'));\n    const users = [];\n    snap.forEach(d=>{\n      if(d.id === myUid) return;\n      const u = d.data() || {};\n      const name = u.username || u.displayName || u.name || (u.email ? u.email.split('@')[0] : 'Yappathon user');\n      users.push({uid:d.id,name,photo:u.photoBase64 || u.photoURL || null,email:u.email || ''});\n    });\n    users.sort((a,b)=>a.name.localeCompare(b.name));\n    const list = $('inviteList');\n    const search = $('inviteSearch');\n    const render = ()=>{\n      const q = search.value.trim().toLowerCase();\n      const filtered = users.filter(u=>u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)).slice(0,100);\n      list.innerHTML = '';\n      if(!filtered.length){ list.innerHTML = '<div class="invite-empty">No matching Yappathon users.</div>'; return; }\n      filtered.forEach(u=>{\n        const row = document.createElement('div');\n        row.className = 'invite-user';\n        row.innerHTML = `<img src="${avatarSrc(u.uid,u.name,u.photo,34)}" alt=""><div class="invite-user-info"><div class="invite-user-name">${escapeHtml(u.name)}</div><div class="invite-user-sub">Yappathon user</div></div><button class="btn primary">Invite</button>`;\n        row.querySelector('button').onclick = async ()=>{\n          try{\n            await setDoc(invitePath(currentTable.id,u.uid), {uid:u.uid,toUid:u.uid,fromUid:myUid,fromName:myName,tableId:currentTable.id,tableName:currentTable.name,status:'ringing',createdAt:serverTimestamp()},{merge:true});\n            row.querySelector('button').textContent='Sent';\n            row.querySelector('button').disabled=true;\n          }catch(e){ toast("Couldn't send the invite."); }\n        };\n        list.appendChild(row);\n      });\n    };\n    search.addEventListener('input', render);\n    render();\n  }catch(e){\n    console.error(e);\n    $('inviteList').innerHTML = '<div class="invite-empty">Couldn’t load Yappathon users.</div>';\n  }\n}\n\n/* ---------------- lobby ---------------- */
 function renderLobby(){
   const grid = $('tableGrid');
   grid.innerHTML = "";
@@ -750,7 +776,13 @@ function renderSeats(){
   const area = $('seatsArea');
   const uids = Object.keys(seatsCache);
   Object.keys(seatEls).forEach(uid=>{
-    if(!seatsCache[uid]){ seatEls[uid].remove(); delete seatEls[uid]; }
+    if(!seatsCache[uid] && !seatEls[uid].classList.contains('leaving')){
+      const leavingEl = seatEls[uid];
+      leavingEl.classList.add('leaving');
+      window.setTimeout(()=>{
+        if(seatEls[uid] === leavingEl){ leavingEl.remove(); delete seatEls[uid]; }
+      }, 300);
+    }
   });
   uids.forEach(uid=>{
     if(!seatEls[uid]){
@@ -790,6 +822,8 @@ $('muteBtn').addEventListener('click', ()=>{
 async function leaveTable(){
   if(!currentTable) return;
   const tableId = currentTable.id;
+  const ownSeat = seatEls[myUid];
+  if(ownSeat){ ownSeat.classList.add('leaving'); await new Promise(r=>setTimeout(r,280)); }
   Object.keys(peers).forEach(teardownPeer);
   if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream = null; }
   while(unsubs.length){ unsubs.pop()(); }
@@ -805,6 +839,7 @@ async function leaveTable(){
   renderLobby();
   show('lobbyScreen');
 }
+$('inviteBtn').addEventListener('click', openInvitePicker);
 $('leaveBtn').addEventListener('click', leaveTable);
 $('leaveBtn2').addEventListener('click', leaveTable);
 
