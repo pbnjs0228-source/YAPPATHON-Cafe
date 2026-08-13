@@ -459,8 +459,11 @@ let currentTable = null;
 let localStream = null;
 let muted = false;
 const peers = {};
+const peerSessionIds = {};
+const peerSignalUnsubs = {};
 const remoteAudioEls = {};
 const unsubs = [];
+let mySessionId = null;
 let seatsCache = {};
 let speakingState = {};
 
