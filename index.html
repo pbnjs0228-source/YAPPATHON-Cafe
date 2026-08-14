@@ -481,6 +481,7 @@ let myRole = "member";
 let currentTable = null;
 let localStream = null;
 let muted = false;
+let heartbeatTimer = null;
 const peers = {};
 const peerSessionIds = {};
 const peerSignalUnsubs = {};
@@ -695,6 +696,33 @@ function getJoinTableFromUrl(){
 }
 
 /* ---------------- lobby ---------------- */
+/* ---------------- stale seat cleanup ----------------
+   beforeunload doesn't always fire (crashes, phone lock, force-quit), so
+   a seat can get left behind with nobody there to delete it. Every seat
+   now carries a `lastActive` heartbeat updated every 15s while seated;
+   any client that spots a seat whose heartbeat has gone quiet treats it
+   as empty (hides it) and opportunistically deletes it — self-healing,
+   no server needed. Firestore rules allow that delete once a seat is
+   past the staleness window, regardless of who's deleting it. */
+const SEAT_STALE_MS = 50000;
+function isStaleSeat(data){
+  const t = data.lastActive || data.joinedAt;
+  if(!t || !t.toMillis) return false; // pending server timestamp — not stale, just brand new
+  return (Date.now() - t.toMillis()) > SEAT_STALE_MS;
+}
+function pruneStaleSeats(snap){
+  const live = [];
+  snap.forEach(d=>{
+    const data = d.data();
+    if(isStaleSeat(data)){
+      deleteDoc(d.ref).catch(()=>{});
+    } else {
+      live.push({ id: d.id, data });
+    }
+  });
+  return live;
+}
+
 function renderLobby(){
   const grid = $('tableGrid');
   grid.innerHTML = "";
@@ -711,23 +739,20 @@ function renderLobby(){
     `;
     grid.appendChild(card);
     const unsub = onSnapshot(collection(db, 'voiceCafe', t.id, 'seats'), snap=>{
+      const live = pruneStaleSeats(snap);
       const occEl = card.querySelector('[data-occ]');
       const prevEl = card.querySelector('[data-preview]');
-      occEl.innerHTML = `<span class="live-dot"></span> ${snap.size} seated`;
+      occEl.innerHTML = `<span class="live-dot"></span> ${live.length} seated`;
       prevEl.innerHTML = "";
-      let i=0;
-      snap.forEach(d=>{
-        if(i>=5) return;
-        const s = d.data();
+      live.slice(0, 5).forEach(({id, data:s})=>{
         const chip = document.createElement('div');
         chip.className = 'seat-chip';
         const img = document.createElement('img');
-        img.src = avatarSrc(d.id, s.name, s.photo, 24);
+        img.src = avatarSrc(id, s.name, s.photo, 24);
         chip.appendChild(img);
         prevEl.appendChild(chip);
-        i++;
       });
-      card.classList.toggle('full', snap.size >= t.max);
+      card.classList.toggle('full', live.length >= t.max);
     });
     unsubs.push(unsub);
   });
@@ -759,15 +784,22 @@ async function joinTable(tableId){
   show('roomScreen');
 
   await setDoc(doc(db, 'voiceCafe', table.id, 'seats', myUid), {
-    name: myName, photo: myPhoto || null, role: myRole, joinedAt: serverTimestamp()
+    name: myName, photo: myPhoto || null, role: myRole, joinedAt: serverTimestamp(), lastActive: serverTimestamp()
   });
 
+  clearInterval(heartbeatTimer);
+  heartbeatTimer = setInterval(()=>{
+    if(!currentTable || !myUid) return;
+    updateDoc(doc(db, 'voiceCafe', currentTable.id, 'seats', myUid), { lastActive: serverTimestamp() }).catch(()=>{});
+  }, 15000);
+
   const seatsUnsub = onSnapshot(collection(db, 'voiceCafe', table.id, 'seats'), snap=>{
+    const live = pruneStaleSeats(snap);
     const liveUids = new Set();
-    snap.forEach(d=>{
-      liveUids.add(d.id);
-      seatsCache[d.id] = d.data();
-      if(d.id !== myUid && !peers[d.id]) connectToPeer(table.id, d.id);
+    live.forEach(({id, data})=>{
+      liveUids.add(id);
+      seatsCache[id] = data;
+      if(id !== myUid && !peers[id]) connectToPeer(table.id, id);
     });
     Object.keys(peers).forEach(uid=>{ if(!liveUids.has(uid)) teardownPeer(uid); });
     renderSeats();
@@ -946,6 +978,8 @@ $('muteBtn').addEventListener('click', ()=>{
 
 async function leaveTable(){
   if(!currentTable) return;
+  clearInterval(heartbeatTimer);
+  heartbeatTimer = null;
   const tableId = currentTable.id;
   const ownSeat = seatEls[myUid];
   if(ownSeat){ ownSeat.classList.add('leaving'); await new Promise(r=>setTimeout(r,280)); }
