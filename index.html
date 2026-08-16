@@ -250,6 +250,53 @@
   .invite-user-info{ min-width:0; flex:1; }
   .invite-user-name{ font-size:13px; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .invite-user-sub{ color:var(--text-muted); font-size:11px; margin-top:2px; }
+
+  /* ---------- games ---------- */
+  .game-launcher{ display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:12px; margin-top:6px; }
+  .game-launch-card{
+    display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center;
+    padding:20px 14px; border:1px solid var(--border); border-radius:14px; background:var(--bg-alt);
+    color:var(--text); transition:transform .18s ease, border-color .18s ease, background .18s ease;
+  }
+  .game-launch-card:hover{ transform:translateY(-3px); border-color:var(--accent); background:var(--bg-input); }
+  .game-launch-icon{ font-size:30px; }
+  .game-launch-name{ font-weight:700; font-size:14px; }
+  .game-launch-desc{ font-size:11px; color:var(--text-muted); line-height:1.4; }
+
+  .game-overlay{
+    position:fixed; inset:0; z-index:1100; display:flex; align-items:center; justify-content:center;
+    padding:20px; background:rgba(0,0,0,.66); backdrop-filter:blur(10px); animation:fadeIn .18s ease both;
+  }
+  .game-panel{
+    width:min(700px,100%); max-height:min(720px,92vh); overflow:auto; background:var(--bg-elevated);
+    border:1px solid var(--border); border-radius:20px; box-shadow:0 30px 90px var(--shadow); padding:22px;
+    animation:cardIn .25s cubic-bezier(.22,1,.36,1) both;
+  }
+  .game-panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+  .game-panel-title{ font-size:18px; font-weight:700; font-family:'Sora',sans-serif; display:flex; align-items:center; gap:10px; }
+  .game-panel-sub{ font-size:12px; color:var(--text-muted); font-weight:500; font-family:'Inter',sans-serif; }
+  .game-score{ text-align:center; font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:700; margin-bottom:10px; color:var(--accent); }
+  .game-hint{ text-align:center; font-size:11.5px; color:var(--text-muted); margin-top:10px; }
+  #pongCanvas, #poolCanvas{ display:block; width:100%; height:auto; border-radius:14px; touch-action:none; cursor:pointer; }
+
+  .casino-balance{ text-align:center; font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; margin:6px 0 14px; }
+  .casino-tabs{ display:flex; gap:6px; margin-bottom:16px; }
+  .casino-tab{ flex:1; padding:9px; border-radius:10px; border:1px solid var(--border); background:var(--bg-input); color:var(--text-muted); font-weight:700; font-size:12.5px; }
+  .casino-tab.active{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+  .casino-game{ text-align:center; }
+  .casino-visual{ font-size:54px; margin:10px 0; min-height:70px; display:flex; align-items:center; justify-content:center; transition:transform .15s ease; }
+  .casino-slots-reels{ font-size:40px; letter-spacing:10px; }
+  .casino-controls{ display:flex; flex-direction:column; align-items:center; gap:10px; max-width:260px; margin:0 auto; }
+  .casino-choice-row{ display:flex; gap:8px; width:100%; }
+  .casino-choice{ flex:1; }
+  .casino-choice.active{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+  .casino-bet{ width:100%; text-align:center; background:var(--bg-input); border:1px solid var(--border); color:var(--text); padding:10px; border-radius:10px; font-size:14px; font-family:inherit; }
+  .casino-result{ margin-top:12px; font-size:13.5px; font-weight:600; min-height:20px; }
+  .casino-result.win{ color:var(--online); }
+  .casino-result.lose{ color:var(--danger); }
+  .casino-feed{ margin-top:18px; border-top:1px solid var(--border); padding-top:12px; display:flex; flex-direction:column; gap:5px; max-height:100px; overflow-y:auto; }
+  .casino-feed-item{ font-size:11.5px; color:var(--text-muted); }
+  .casino-feed-item b{ color:var(--text); }
   .invite-empty{ color:var(--text-muted); font-size:13px; padding:20px 4px; text-align:center; }
   .invite-search{ width:100%; background:var(--bg-input); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:10px; outline:none; }
   .invite-search:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
@@ -359,7 +406,7 @@
         <span class="icon" id="roomIcon">☕</span>
         <h2 id="roomName">Table</h2>
       </div>
-      <div style="display:flex;align-items:center;gap:8px"><button class="btn" id="inviteBtn">＋ Invite</button><button class="leave-link" id="leaveBtn">← Back to tables</button></div>
+      <div style="display:flex;align-items:center;gap:8px"><button class="btn" id="gamesBtn">🎮 Games</button><button class="btn" id="inviteBtn">＋ Invite</button><button class="leave-link" id="leaveBtn">← Back to tables</button></div>
     </div>
     <div class="seats-area" id="seatsArea"></div>
     <div class="dock">
@@ -377,6 +424,108 @@
   </div>
 </div>
 
+<!-- GAMES LAUNCHER -->
+<div class="invite-modal hidden" id="gamesModal">
+  <div class="invite-card" role="dialog" aria-modal="true">
+    <div class="invite-head"><h3>Table games</h3><button class="leave-link" id="gamesClose">✕</button></div>
+    <div class="game-launcher">
+      <button class="game-launch-card" data-game="pool">
+        <span class="game-launch-icon">🎱</span>
+        <span class="game-launch-name">Pool</span>
+        <span class="game-launch-desc">Turn-based 8-ball, aim &amp; shoot</span>
+      </button>
+      <button class="game-launch-card" data-game="pong">
+        <span class="game-launch-icon">🏓</span>
+        <span class="game-launch-name">Pong</span>
+        <span class="game-launch-desc">Live 1v1, first to 7</span>
+      </button>
+      <button class="game-launch-card" data-game="casino">
+        <span class="game-launch-icon">🎰</span>
+        <span class="game-launch-name">Casino</span>
+        <span class="game-launch-desc">Virtual chips only — not real money</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- PONG -->
+<div class="game-overlay hidden" id="pongOverlay">
+  <div class="game-panel">
+    <div class="game-panel-head">
+      <div class="game-panel-title">🏓 Pong <span class="game-panel-sub" id="pongStatus">Waiting for an opponent…</span></div>
+      <button class="leave-link" id="pongClose">✕</button>
+    </div>
+    <div class="game-score" id="pongScore">0 — 0</div>
+    <canvas id="pongCanvas" width="640" height="380"></canvas>
+    <div class="game-hint">Drag up/down on the table, or use ↑ / ↓</div>
+  </div>
+</div>
+
+<!-- POOL -->
+<div class="game-overlay hidden" id="poolOverlay">
+  <div class="game-panel">
+    <div class="game-panel-head">
+      <div class="game-panel-title">🎱 Pool <span class="game-panel-sub" id="poolStatus">Setting up the table…</span></div>
+      <button class="leave-link" id="poolClose">✕</button>
+    </div>
+    <canvas id="poolCanvas" width="640" height="340"></canvas>
+    <div class="game-hint">Drag back from the cue ball to aim, release to shoot</div>
+  </div>
+</div>
+
+<!-- CASINO -->
+<div class="game-overlay hidden" id="casinoOverlay">
+  <div class="game-panel">
+    <div class="game-panel-head">
+      <div class="game-panel-title">🎰 Casino <span class="game-panel-sub">Virtual chips only — no real money, ever</span></div>
+      <button class="leave-link" id="casinoClose">✕</button>
+    </div>
+    <div class="casino-balance">🪙 <span id="casinoChips">—</span> chips</div>
+    <div class="casino-tabs">
+      <button class="casino-tab active" data-casino="flip">Coin Flip</button>
+      <button class="casino-tab" data-casino="dice">Dice</button>
+      <button class="casino-tab" data-casino="slots">Slots</button>
+    </div>
+
+    <div class="casino-game" id="casino-flip">
+      <div class="casino-visual" id="flipVisual">🪙</div>
+      <div class="casino-controls">
+        <div class="casino-choice-row">
+          <button class="btn casino-choice active" data-choice="heads">Heads</button>
+          <button class="btn casino-choice" data-choice="tails">Tails</button>
+        </div>
+        <input type="number" class="casino-bet" id="flipBet" value="50" min="10" step="10">
+        <button class="btn primary" id="flipPlay">Flip (2×)</button>
+      </div>
+      <div class="casino-result" id="flipResult"></div>
+    </div>
+
+    <div class="casino-game hidden" id="casino-dice">
+      <div class="casino-visual" id="diceVisual">🎲</div>
+      <div class="casino-controls">
+        <div class="casino-choice-row">
+          <button class="btn casino-choice active" data-choice="under">Under 50</button>
+          <button class="btn casino-choice" data-choice="over">Over 50</button>
+        </div>
+        <input type="number" class="casino-bet" id="diceBet" value="50" min="10" step="10">
+        <button class="btn primary" id="dicePlay">Roll (1.9×)</button>
+      </div>
+      <div class="casino-result" id="diceResult"></div>
+    </div>
+
+    <div class="casino-game hidden" id="casino-slots">
+      <div class="casino-visual casino-slots-reels" id="slotsVisual">🍒 🍋 🍇</div>
+      <div class="casino-controls">
+        <input type="number" class="casino-bet" id="slotsBet" value="50" min="10" step="10">
+        <button class="btn primary" id="slotsPlay">Spin</button>
+      </div>
+      <div class="casino-result" id="slotsResult"></div>
+    </div>
+
+    <div class="casino-feed" id="casinoFeed"></div>
+  </div>
+</div>
+
 <div class="toasts" id="toastWrap"></div>
 
 <script type="module">
@@ -385,7 +534,8 @@ import {
   getAuth, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, onSnapshot, serverTimestamp, arrayUnion
+  getFirestore, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, collection, onSnapshot,
+  serverTimestamp, arrayUnion, runTransaction, query, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -987,6 +1137,7 @@ $('muteBtn').addEventListener('click', ()=>{
 
 async function leaveTable(){
   if(!currentTable) return;
+  closeAllGames();
   clearInterval(heartbeatTimer);
   heartbeatTimer = null;
   const tableId = currentTable.id;
@@ -1010,6 +1161,484 @@ async function leaveTable(){
 $('inviteBtn').addEventListener('click', openInvitePicker);
 $('leaveBtn').addEventListener('click', leaveTable);
 $('leaveBtn2').addEventListener('click', leaveTable);
+
+/* ============================================================
+   TABLE GAMES — Pong (live 1v1), Pool (turn-based), Casino (chips).
+   All state lives under voiceCafe/{tableId}/games/{gameName}, a doc
+   any signed-in user can read/write (same trust level as the WebRTC
+   signaling docs already used for voice — these are just party games).
+   ============================================================ */
+let gameUnsub = null;
+let activeGameName = null;
+
+function gameDocRef(name){
+  return doc(db, 'voiceCafe', currentTable.id, 'games', name);
+}
+function closeAllGames(){
+  ['pongOverlay','poolOverlay','casinoOverlay'].forEach(id=>$(id).classList.add('hidden'));
+  if(gameUnsub){ gameUnsub(); gameUnsub = null; }
+  stopPongLoop();
+  activeGameName = null;
+}
+
+$('gamesBtn').addEventListener('click', ()=> $('gamesModal').classList.remove('hidden'));
+$('gamesClose').addEventListener('click', ()=> $('gamesModal').classList.add('hidden'));
+$('gamesModal').addEventListener('click', e=>{ if(e.target===$('gamesModal')) $('gamesModal').classList.add('hidden'); });
+document.querySelectorAll('.game-launch-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    $('gamesModal').classList.add('hidden');
+    const g = card.dataset.game;
+    if(g==='pong') openPong();
+    else if(g==='pool') openPool();
+    else if(g==='casino') openCasino();
+  });
+});
+$('pongClose').addEventListener('click', closeAllGames);
+$('poolClose').addEventListener('click', closeAllGames);
+$('casinoClose').addEventListener('click', closeAllGames);
+
+/* ---------------- PONG ----------------
+   Whoever opens it first becomes "host" and runs the authoritative
+   physics loop; the second player is "guest" and just sends their
+   paddle position. Both render from the synced Firestore doc, but the
+   host also renders its own paddle instantly (no round-trip lag). */
+const PONG_W = 640, PONG_H = 380, PADDLE_H = 70, PADDLE_W = 10, BALL_R = 7;
+let pongState = null;
+let pongRole = null; // 'host' | 'guest' | null
+let pongLoopId = null;
+let pongLastSync = 0;
+let myPaddleY = PONG_H/2;
+
+function stopPongLoop(){
+  if(pongLoopId){ cancelAnimationFrame(pongLoopId); pongLoopId = null; }
+  pongState = null; pongRole = null;
+}
+
+async function openPong(){
+  if(!currentTable) return;
+  activeGameName = 'pong';
+  $('pongOverlay').classList.remove('hidden');
+  $('pongStatus').textContent = 'Connecting…';
+  const ref = gameDocRef('pong');
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? snap.data() : null;
+  const fresh = data && data.updatedAt && data.updatedAt.toMillis && (Date.now() - data.updatedAt.toMillis() < 15000);
+
+  if(!fresh || !data || data.status !== 'playing' || data.hostUid === myUid){
+    pongRole = 'host';
+    await setDoc(ref, {
+      status: 'waiting', hostUid: myUid, hostName: myName, guestUid: null, guestName: null,
+      ballX: PONG_W/2, ballY: PONG_H/2, ballVX: 4, ballVY: 3,
+      hostPaddleY: PONG_H/2, guestPaddleY: PONG_H/2, hostScore: 0, guestScore: 0,
+      updatedAt: serverTimestamp()
+    });
+  } else if(!data.guestUid || data.guestUid === myUid){
+    pongRole = 'guest';
+    await updateDoc(ref, { guestUid: myUid, guestName: myName, status: 'playing', updatedAt: serverTimestamp() });
+  } else {
+    pongRole = 'spectator';
+  }
+
+  if(gameUnsub) gameUnsub();
+  gameUnsub = onSnapshot(ref, s=>{
+    if(!s.exists()) return;
+    pongState = s.data();
+    if(pongRole === 'host' && pongState.guestUid && pongState.status === 'waiting'){
+      updateDoc(ref, { status:'playing' }).catch(()=>{});
+    }
+    $('pongStatus').textContent = pongState.status === 'waiting'
+      ? 'Waiting for an opponent…'
+      : `${pongState.hostName||'Host'} vs ${pongState.guestName||'…'}`;
+    $('pongScore').textContent = `${pongState.hostScore||0} — ${pongState.guestScore||0}`;
+    if(pongRole !== 'host') renderPong(pongState);
+  });
+
+  if(pongRole === 'host') startPongHostLoop(ref);
+  setupPongInput(ref);
+}
+
+function startPongHostLoop(ref){
+  let vx = 4, vy = 3, x = PONG_W/2, y = PONG_H/2;
+  function tick(){
+    if(activeGameName !== 'pong' || pongRole !== 'host'){ pongLoopId=null; return; }
+    if(pongState && pongState.status === 'playing'){
+      x += vx; y += vy;
+      if(y < BALL_R || y > PONG_H-BALL_R) vy = -vy;
+      const hp = myPaddleY, gp = pongState.guestPaddleY ?? PONG_H/2;
+      if(x < PADDLE_W+BALL_R && x > BALL_R && Math.abs(y-hp) < PADDLE_H/2){ vx = Math.abs(vx)*1.03; }
+      if(x > PONG_W-PADDLE_W-BALL_R && x < PONG_W-BALL_R && Math.abs(y-gp) < PADDLE_H/2){ vx = -Math.abs(vx)*1.03; }
+      let hostScore = pongState.hostScore||0, guestScore = pongState.guestScore||0, scored=false;
+      if(x < 0){ guestScore++; x=PONG_W/2; y=PONG_H/2; vx=4; vy=3; scored=true; }
+      if(x > PONG_W){ hostScore++; x=PONG_W/2; y=PONG_H/2; vx=-4; vy=3; scored=true; }
+      const now = performance.now();
+      if(now - pongLastSync > 45 || scored){
+        pongLastSync = now;
+        updateDoc(ref, { ballX:x, ballY:y, hostPaddleY: myPaddleY, hostScore, guestScore, updatedAt: serverTimestamp() }).catch(()=>{});
+      }
+      renderPong({ ...pongState, ballX:x, ballY:y, hostPaddleY: myPaddleY, hostScore, guestScore });
+    }
+    pongLoopId = requestAnimationFrame(tick);
+  }
+  pongLoopId = requestAnimationFrame(tick);
+}
+
+function setupPongInput(ref){
+  const canvas = $('pongCanvas');
+  function setPaddle(clientY){
+    const rect = canvas.getBoundingClientRect();
+    const scale = PONG_H / rect.height;
+    myPaddleY = Math.max(PADDLE_H/2, Math.min(PONG_H-PADDLE_H/2, (clientY-rect.top)*scale));
+    if(pongRole === 'guest'){
+      const now = performance.now();
+      if(now - pongLastSync > 45){ pongLastSync = now; updateDoc(ref, { guestPaddleY: myPaddleY }).catch(()=>{}); }
+    }
+  }
+  canvas.onmousemove = e=>{ if(e.buttons) setPaddle(e.clientY); };
+  canvas.onmousedown = e=> setPaddle(e.clientY);
+  canvas.ontouchmove = e=>{ setPaddle(e.touches[0].clientY); e.preventDefault(); };
+  canvas.ontouchstart = e=> setPaddle(e.touches[0].clientY);
+  document.onkeydown = (e)=>{
+    if(activeGameName !== 'pong') return;
+    if(e.key==='ArrowUp') myPaddleY = Math.max(PADDLE_H/2, myPaddleY-18);
+    if(e.key==='ArrowDown') myPaddleY = Math.min(PONG_H-PADDLE_H/2, myPaddleY+18);
+    if(pongRole==='guest') updateDoc(ref, { guestPaddleY: myPaddleY }).catch(()=>{});
+  };
+}
+
+function renderPong(s){
+  const ctx = $('pongCanvas').getContext('2d');
+  const style = getComputedStyle(document.body);
+  ctx.fillStyle = style.getPropertyValue('--bg-alt'); ctx.fillRect(0,0,PONG_W,PONG_H);
+  ctx.strokeStyle = style.getPropertyValue('--border'); ctx.setLineDash([6,8]);
+  ctx.beginPath(); ctx.moveTo(PONG_W/2,0); ctx.lineTo(PONG_W/2,PONG_H); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = style.getPropertyValue('--accent');
+  ctx.fillRect(0, (s.hostPaddleY??PONG_H/2)-PADDLE_H/2, PADDLE_W, PADDLE_H);
+  ctx.fillRect(PONG_W-PADDLE_W, (s.guestPaddleY??PONG_H/2)-PADDLE_H/2, PADDLE_W, PADDLE_H);
+  ctx.beginPath(); ctx.arc(s.ballX??PONG_W/2, s.ballY??PONG_H/2, BALL_R, 0, Math.PI*2); ctx.fill();
+}
+
+/* ---------------- POOL ----------------
+   Turn-based. The shooter simulates the shot locally (deterministic,
+   fixed timestep) and, once every ball has stopped, writes the final
+   resting positions to Firestore as the source of truth. Everyone else
+   just tweens toward whatever the doc says — no need to keep every
+   client's physics frame-perfectly in sync. */
+const POOL_W = 640, POOL_H = 340, POOL_R = 9;
+const POOL_POCKETS = [[14,14],[POOL_W/2,10],[POOL_W-14,14],[14,POOL_H-14],[POOL_W/2,POOL_H-10],[POOL_W-14,POOL_H-14]];
+let poolState = null;
+let poolMyIndex = -1;
+let poolAiming = null;
+let poolRenderPositions = null;
+
+function poolInitialBalls(){
+  const balls = { cue: { x: 160, y: POOL_H/2, potted:false } };
+  const startX = POOL_W - 160, startY = POOL_H/2;
+  let id = 1, row = 0;
+  const rowSpacing = POOL_R*2*0.87;
+  for(let r=0; r<5; r++){
+    for(let c=0; c<=r; c++){
+      balls['b'+id] = {
+        x: startX + r*rowSpacing,
+        y: startY - r*POOL_R + c*POOL_R*2,
+        potted:false
+      };
+      id++;
+    }
+  }
+  return balls;
+}
+
+async function openPool(){
+  if(!currentTable) return;
+  activeGameName = 'pool';
+  $('poolOverlay').classList.remove('hidden');
+  $('poolStatus').textContent = 'Setting up…';
+  const ref = gameDocRef('pool');
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? snap.data() : null;
+
+  if(!data || data.status !== 'playing'){
+    await setDoc(ref, {
+      status:'playing', players:[myUid], names:{[myUid]:myName},
+      turnUid: myUid, balls: poolInitialBalls(), updatedAt: serverTimestamp()
+    });
+  } else if(!data.players.includes(myUid)){
+    await updateDoc(ref, { players: arrayUnion(myUid), [`names.${myUid}`]: myName });
+  }
+
+  if(gameUnsub) gameUnsub();
+  gameUnsub = onSnapshot(ref, s=>{
+    if(!s.exists()) return;
+    const prev = poolState;
+    poolState = s.data();
+    poolMyIndex = poolState.players.indexOf(myUid);
+    const whoseTurn = poolState.names?.[poolState.turnUid] || 'someone';
+    $('poolStatus').textContent = poolState.turnUid === myUid ? 'Your shot' : `${whoseTurn}'s shot`;
+    if(!poolRenderPositions) poolRenderPositions = { ...poolState.balls };
+    tweenPoolTo(poolState.balls);
+  });
+  poolRenderPositions = null;
+  setupPoolInput(ref);
+}
+
+function tweenPoolTo(target){
+  const start = { ...poolRenderPositions };
+  const t0 = performance.now();
+  function step(){
+    if(activeGameName !== 'pool') return;
+    const t = Math.min(1, (performance.now()-t0)/500);
+    const cur = {};
+    Object.keys(target).forEach(id=>{
+      const a = start[id] || target[id], b = target[id];
+      cur[id] = { x: a.x+(b.x-a.x)*t, y: a.y+(b.y-a.y)*t, potted: b.potted };
+    });
+    poolRenderPositions = cur;
+    renderPool();
+    if(t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function setupPoolInput(ref){
+  const canvas = $('poolCanvas');
+  function pos(e){
+    const rect = canvas.getBoundingClientRect();
+    const scale = POOL_W/rect.width;
+    const p = e.touches ? e.touches[0] : e;
+    return { x:(p.clientX-rect.left)*scale, y:(p.clientY-rect.top)*scale };
+  }
+  canvas.onmousedown = e=>{
+    if(!poolState || poolState.turnUid !== myUid) return;
+    poolAiming = { start: pos(e) };
+  };
+  canvas.onmousemove = e=>{ if(poolAiming) poolAiming.now = pos(e); renderPool(); };
+  window.addEventListener('mouseup', ()=>{
+    if(activeGameName==='pool' && poolAiming && poolAiming.now) takePoolShot(ref);
+    poolAiming = null;
+  });
+  canvas.ontouchstart = e=>{ if(!poolState||poolState.turnUid!==myUid) return; poolAiming = { start: pos(e) }; e.preventDefault(); };
+  canvas.ontouchmove = e=>{ if(poolAiming){ poolAiming.now = pos(e); renderPool(); } e.preventDefault(); };
+  canvas.ontouchend = ()=>{ if(poolAiming && poolAiming.now) takePoolShot(ref); poolAiming = null; };
+}
+
+function takePoolShot(ref){
+  const cue = poolRenderPositions.cue;
+  if(!cue || cue.potted) return;
+  const dx = poolAiming.start.x - poolAiming.now.x;
+  const dy = poolAiming.start.y - poolAiming.now.y;
+  const dist = Math.min(120, Math.hypot(dx,dy));
+  if(dist < 8) return;
+  const power = dist/120 * 14;
+  const angle = Math.atan2(dy,dx);
+  const balls = {};
+  Object.entries(poolState.balls).forEach(([id,b])=> balls[id] = { ...b, vx:0, vy:0 });
+  balls.cue.vx = Math.cos(angle)*power;
+  balls.cue.vy = Math.sin(angle)*power;
+  const result = simulatePoolShot(balls);
+  const players = poolState.players;
+  const curIdx = players.indexOf(myUid);
+  const nextUid = players[(curIdx+1) % players.length] || myUid;
+  const finalBalls = {};
+  Object.entries(result).forEach(([id,b])=> finalBalls[id] = { x:b.x, y:b.y, potted:b.potted });
+  updateDoc(ref, { balls: finalBalls, turnUid: nextUid, updatedAt: serverTimestamp() }).catch(()=>{});
+}
+
+function simulatePoolShot(balls){
+  const ids = Object.keys(balls);
+  for(let step=0; step<400; step++){
+    let moving = false;
+    ids.forEach(id=>{
+      const b = balls[id];
+      if(b.potted) return;
+      b.x += b.vx; b.y += b.vy;
+      b.vx *= 0.985; b.vy *= 0.985;
+      if(Math.hypot(b.vx,b.vy) < 0.05){ b.vx=0; b.vy=0; } else moving = true;
+      if(b.x < POOL_R){ b.x=POOL_R; b.vx=-b.vx; } if(b.x > POOL_W-POOL_R){ b.x=POOL_W-POOL_R; b.vx=-b.vx; }
+      if(b.y < POOL_R){ b.y=POOL_R; b.vy=-b.vy; } if(b.y > POOL_H-POOL_R){ b.y=POOL_H-POOL_R; b.vy=-b.vy; }
+      POOL_POCKETS.forEach(([px,py])=>{
+        if(!b.potted && Math.hypot(b.x-px, b.y-py) < 16){ b.potted = true; b.vx=0; b.vy=0;
+          if(id==='cue'){ b.x=160; b.y=POOL_H/2; b.potted=false; }
+        }
+      });
+    });
+    for(let i=0;i<ids.length;i++){
+      for(let j=i+1;j<ids.length;j++){
+        const a=balls[ids[i]], c=balls[ids[j]];
+        if(a.potted||c.potted) continue;
+        const dx=c.x-a.x, dy=c.y-a.y, d=Math.hypot(dx,dy);
+        if(d < POOL_R*2 && d > 0){
+          const nx=dx/d, ny=dy/d, overlap=POOL_R*2-d;
+          a.x -= nx*overlap/2; a.y -= ny*overlap/2; c.x += nx*overlap/2; c.y += ny*overlap/2;
+          const avx=a.vx, avy=a.vy;
+          a.vx = c.vx; a.vy = c.vy; c.vx = avx; c.vy = avy;
+          moving = true;
+        }
+      }
+    }
+    if(!moving) break;
+  }
+  return balls;
+}
+
+function renderPool(){
+  const canvas = $('poolCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#0f3d24'; ctx.fillRect(0,0,POOL_W,POOL_H);
+  ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 10;
+  ctx.strokeRect(5,5,POOL_W-10,POOL_H-10);
+  ctx.fillStyle = '#111';
+  POOL_POCKETS.forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x,y,13,0,Math.PI*2); ctx.fill(); });
+  if(!poolRenderPositions) return;
+  Object.entries(poolRenderPositions).forEach(([id,b])=>{
+    if(b.potted) return;
+    ctx.beginPath(); ctx.arc(b.x,b.y,POOL_R,0,Math.PI*2);
+    ctx.fillStyle = id==='cue' ? '#f4f0e6' : `hsl(${(parseInt(id.replace('b',''),10)||0)*37 % 360},70%,55%)`;
+    ctx.fill(); ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=1.5; ctx.stroke();
+  });
+  if(poolAiming && poolAiming.now && poolRenderPositions.cue && !poolRenderPositions.cue.potted){
+    const cue = poolRenderPositions.cue;
+    const dx = cue.x - (poolAiming.start.x - poolAiming.now.x);
+    const dy = cue.y - (poolAiming.start.y - poolAiming.now.y);
+    ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.setLineDash([4,5]); ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(cue.x,cue.y); ctx.lineTo(dx,dy); ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+
+/* ---------------- CASINO ----------------
+   Purely virtual chips stored on the person's own Yappathon profile
+   (users/{uid}.cafeChips) — never real money. Bets are resolved with a
+   transaction so a double-click can't double-spend. Big wins post to a
+   small shared feed so the table sees them, but nobody else's balance
+   is ever touched. */
+let casinoFeedUnsub = null;
+
+async function getMyChips(){
+  const snap = await getDoc(doc(db, 'users', myUid));
+  const val = snap.exists() ? snap.data().cafeChips : undefined;
+  return typeof val === 'number' ? val : 1000;
+}
+function setChipsDisplay(v){ $('casinoChips').textContent = v.toLocaleString(); }
+
+async function placeBet(amount, resolve){
+  // resolve(balanceBefore) -> { delta, resultText, resultClass, feedText? }
+  amount = Math.max(10, Math.floor(Number(amount)||0));
+  const userRef = doc(db, 'users', myUid);
+  let outcome = null;
+  try{
+    await runTransaction(db, async (tx)=>{
+      const snap = await tx.get(userRef);
+      const current = (snap.exists() && typeof snap.data().cafeChips === 'number') ? snap.data().cafeChips : 1000;
+      if(current < amount) throw new Error('not-enough');
+      outcome = resolve(current, amount);
+      tx.set(userRef, { cafeChips: current + outcome.delta }, { merge:true });
+    });
+  }catch(e){
+    if(e.message === 'not-enough') toast("Not enough chips.");
+    else { console.error(e); toast("Couldn't place that bet."); }
+    return null;
+  }
+  const chips = await getMyChips();
+  setChipsDisplay(chips);
+  if(outcome && outcome.delta >= 500 && currentTable){
+    addDoc(collection(db, 'voiceCafe', currentTable.id, 'casinoFeed'), {
+      uid: myUid, name: myName, amount: outcome.delta, game: outcome.feedGame || 'casino',
+      createdAt: serverTimestamp()
+    }).catch(()=>{});
+  }
+  return outcome;
+}
+
+async function openCasino(){
+  activeGameName = 'casino';
+  $('casinoOverlay').classList.remove('hidden');
+  setChipsDisplay(await getMyChips());
+  if(currentTable){
+    if(casinoFeedUnsub) casinoFeedUnsub();
+    const q = query(collection(db, 'voiceCafe', currentTable.id, 'casinoFeed'), orderBy('createdAt','desc'), limit(8));
+    casinoFeedUnsub = onSnapshot(q, snap=>{
+      const el = $('casinoFeed'); el.innerHTML = '';
+      snap.forEach(d=>{
+        const f = d.data();
+        const row = document.createElement('div');
+        row.className = 'casino-feed-item';
+        row.innerHTML = `🎉 <b>${escapeHtml(f.name||'Someone')}</b> won ${(f.amount||0).toLocaleString()} chips on ${escapeHtml(f.game||'a game')}`;
+        el.appendChild(row);
+      });
+    });
+  }
+}
+const _closeAllGamesOrig = closeAllGames;
+closeAllGames = function(){ _closeAllGamesOrig(); if(casinoFeedUnsub){ casinoFeedUnsub(); casinoFeedUnsub=null; } };
+
+document.querySelectorAll('.casino-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.casino-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.casino-game').forEach(g=>g.classList.add('hidden'));
+    tab.classList.add('active');
+    $('casino-'+tab.dataset.casino).classList.remove('hidden');
+  });
+});
+
+let flipChoice = 'heads';
+document.querySelectorAll('#casino-flip .casino-choice').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#casino-flip .casino-choice').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); flipChoice = b.dataset.choice;
+  });
+});
+$('flipPlay').addEventListener('click', async ()=>{
+  const amount = $('flipBet').value;
+  const landed = Math.random() < 0.5 ? 'heads' : 'tails';
+  $('flipVisual').textContent = landed === 'heads' ? '🪙' : '🥈';
+  const outcome = await placeBet(amount, (bal, amt)=>{
+    const win = landed === flipChoice;
+    return { delta: win ? amt : -amt, win, feedGame:'Coin Flip' };
+  });
+  const el = $('flipResult');
+  if(!outcome) return;
+  el.textContent = outcome.win ? `It's ${landed}! +${Math.abs(outcome.delta)} chips` : `It's ${landed} — you lost ${Math.abs(outcome.delta)} chips`;
+  el.className = 'casino-result ' + (outcome.win ? 'win' : 'lose');
+});
+
+let diceChoice = 'under';
+document.querySelectorAll('#casino-dice .casino-choice').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#casino-dice .casino-choice').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); diceChoice = b.dataset.choice;
+  });
+});
+$('dicePlay').addEventListener('click', async ()=>{
+  const amount = $('diceBet').value;
+  const roll = Math.floor(Math.random()*100)+1;
+  $('diceVisual').textContent = roll;
+  const outcome = await placeBet(amount, (bal, amt)=>{
+    const win = diceChoice === 'under' ? roll < 50 : roll > 50;
+    const delta = win ? Math.round(amt*0.9) : -amt;
+    return { delta, win, feedGame:'Dice' };
+  });
+  const el = $('diceResult');
+  if(!outcome) return;
+  el.textContent = outcome.win ? `Rolled ${roll} — +${Math.abs(outcome.delta)} chips` : `Rolled ${roll} — lost ${Math.abs(outcome.delta)} chips`;
+  el.className = 'casino-result ' + (outcome.win ? 'win' : 'lose');
+});
+
+const SLOT_SYMBOLS = ['🍒','🍋','🍇','🔔','⭐','💎'];
+$('slotsPlay').addEventListener('click', async ()=>{
+  const amount = $('slotsBet').value;
+  const reels = [0,0,0].map(()=> SLOT_SYMBOLS[Math.floor(Math.random()*SLOT_SYMBOLS.length)]);
+  $('slotsVisual').textContent = reels.join(' ');
+  const outcome = await placeBet(amount, (bal, amt)=>{
+    let mult = 0;
+    if(reels[0]===reels[1] && reels[1]===reels[2]) mult = reels[0]==='💎' ? 20 : 8;
+    else if(reels[0]===reels[1] || reels[1]===reels[2] || reels[0]===reels[2]) mult = 1.5;
+    const delta = mult > 0 ? Math.round(amt*mult) : -amt;
+    return { delta, win: mult>0, feedGame:'Slots' };
+  });
+  const el = $('slotsResult');
+  if(!outcome) return;
+  el.textContent = outcome.win ? `+${Math.abs(outcome.delta)} chips!` : `No match — lost ${Math.abs(outcome.delta)} chips`;
+  el.className = 'casino-result ' + (outcome.win ? 'win' : 'lose');
+});
 
 window.addEventListener('beforeunload', ()=>{
   if(currentTable && myUid){
