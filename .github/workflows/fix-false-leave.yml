@@ -1,0 +1,54 @@
+name: Fix false Voice Cafe leave detection
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-false-leave.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch false stale-seat detection
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old_timeout = 'const SEAT_STALE_MS = 50000;'
+          new_timeout = 'const SEAT_STALE_MS = 180000; // allow background-tab timer throttling and brief network hiccups'
+          old_prune = '''    if(isStaleSeat(data)){
+      deleteDoc(d.ref).catch(()=>{});
+    } else {
+      live.push({ id: d.id, data });
+    }'''
+          new_prune = '''    // Never mark our own seat stale locally. Browser timer throttling can pause
+    // the heartbeat while the tab is backgrounded, which previously made us
+    // briefly disappear and look as though we had left our own table.
+    if(d.id !== myUid && isStaleSeat(data)){
+      deleteDoc(d.ref).catch(()=>{});
+    } else {
+      live.push({ id: d.id, data });
+    }'''
+          if old_timeout not in s:
+              raise SystemExit('Expected stale timeout was not found; refusing to patch.')
+          if old_prune not in s:
+              raise SystemExit('Expected stale-seat pruning block was not found; refusing to patch.')
+          s = s.replace(old_timeout, new_timeout, 1)
+          s = s.replace(old_prune, new_prune, 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit patch and remove temporary workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html .github/workflows/fix-false-leave.yml
+          git commit -m 'Fix false Voice Cafe leave detection'
+          git push
