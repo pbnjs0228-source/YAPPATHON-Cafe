@@ -795,13 +795,22 @@ async function joinTable(tableId){
 
   const seatsUnsub = onSnapshot(collection(db, 'voiceCafe', table.id, 'seats'), snap=>{
     const live = pruneStaleSeats(snap);
-    const liveUids = new Set();
+    const liveUids = new Set(live.map(({id}) => id));
+
+    // IMPORTANT: replace the cache from the current Firestore snapshot.
+    // Previously this only added users, so a user who left disappeared from
+    // Firestore but remained in seatsCache forever until the room was rebuilt.
+    const nextSeatsCache = {};
     live.forEach(({id, data})=>{
-      liveUids.add(id);
-      seatsCache[id] = data;
+      nextSeatsCache[id] = data;
       if(id !== myUid && !peers[id]) connectToPeer(table.id, id);
     });
-    Object.keys(peers).forEach(uid=>{ if(!liveUids.has(uid)) teardownPeer(uid); });
+    seatsCache = nextSeatsCache;
+
+    // Tear down peers for users who are no longer actually seated.
+    Object.keys(peers).forEach(uid=>{
+      if(!liveUids.has(uid)) teardownPeer(uid);
+    });
     renderSeats();
   });
   unsubs.push(seatsUnsub);
