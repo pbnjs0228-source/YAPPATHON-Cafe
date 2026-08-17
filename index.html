@@ -1738,7 +1738,18 @@ function simulatePoolShot(balls){
     if(!moving) break;
   }
   const final = {};
-  Object.entries(balls).forEach(([id,b])=> final[id] = { x: round2(b.x), y: round2(b.y), potted: !!b.potted, type:b.type, num:b.num, striped:b.striped, color:b.color });
+  Object.entries(balls).forEach(([id,b])=>{
+    // Firestore rejects any field explicitly set to `undefined` (it throws
+    // synchronously, before the write is even sent). The cue ball has no
+    // num/striped/color, so writing those keys unconditionally used to blow
+    // up every shot. Only include a key when the source ball actually has it.
+    const rec = { x: round2(b.x), y: round2(b.y), potted: !!b.potted };
+    if(b.type !== undefined) rec.type = b.type;
+    if(b.num !== undefined) rec.num = b.num;
+    if(b.striped !== undefined) rec.striped = b.striped;
+    if(b.color !== undefined) rec.color = b.color;
+    final[id] = rec;
+  });
   return { final, frames };
 }
 
