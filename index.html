@@ -278,6 +278,35 @@
   .game-score{ text-align:center; font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:700; margin-bottom:10px; color:var(--accent); }
   .game-hint{ text-align:center; font-size:11.5px; color:var(--text-muted); margin-top:10px; }
   #pongCanvas, #poolCanvas{ display:block; width:100%; height:auto; border-radius:14px; touch-action:none; cursor:pointer; }
+  .game-playarea.hidden{ display:none; }
+
+  /* ---------- lobby (shared by pool / pong / casino) ---------- */
+  .game-lobby{ padding:4px 0 6px; }
+  .game-lobby.hidden{ display:none; }
+  .lobby-cap{ text-align:center; font-size:11.5px; color:var(--text-muted); margin-bottom:12px; }
+  .lobby-slots{ display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px; margin-bottom:16px; }
+  .lobby-slot{ display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; padding:14px 8px; border:1px solid var(--border); border-radius:14px; background:var(--bg-alt); position:relative; }
+  .lobby-slot.filled{ border-color:var(--accent); background:var(--accent-soft); }
+  .lobby-slot.you{ box-shadow:0 0 0 2px var(--accent) inset; }
+  .lobby-avatar{ width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; background:var(--accent); color:#fff; }
+  .lobby-avatar.empty{ background:var(--bg-input); color:var(--text-muted); font-weight:400; font-size:18px; border:1px dashed var(--border); }
+  .lobby-name{ font-size:12px; font-weight:600; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lobby-name.muted{ color:var(--text-muted); font-weight:500; }
+  .lobby-host-badge{ position:absolute; top:6px; right:8px; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--accent); }
+  .lobby-actions{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .lobby-start-btn{ border:0; border-radius:12px; padding:12px 26px; font-weight:700; font-size:14px; font-family:inherit; background:var(--accent); color:#fff; cursor:pointer; transition:transform .15s ease, opacity .15s ease; }
+  .lobby-start-btn:hover{ transform:translateY(-2px); }
+  .lobby-start-btn:disabled{ opacity:.4; cursor:not-allowed; transform:none; }
+  .lobby-hint{ font-size:11.5px; color:var(--text-muted); text-align:center; }
+
+  /* ---------- pool table (redrawn) ---------- */
+  .pool-wrap{ padding:12px; border-radius:20px; background:linear-gradient(145deg,#2a180e,#0e0906); border:1px solid #6b4529; box-shadow:0 16px 44px #0007; }
+  #poolCanvas{ border-radius:14px; box-shadow:0 6px 24px #0006; }
+  .pool-turnbar{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-bottom:10px; }
+  .pool-turn-chip{ padding:5px 11px; border-radius:999px; font-size:11.5px; font-weight:700; background:var(--bg-alt); border:1px solid var(--border); color:var(--text-muted); }
+  .pool-turn-chip.active{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent); }
+  .pool-power{ height:8px; max-width:420px; margin:10px auto 0; background:var(--bg-input); border-radius:999px; overflow:hidden; border:1px solid var(--border); }
+  .pool-power i{ display:block; height:100%; width:0; background:linear-gradient(90deg,#6ee79d,#f1d06c,#ed7c63); transition:width .05s linear; }
 
   .casino-balance{ text-align:center; font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:700; margin:6px 0 14px; }
   .casino-tabs{ display:flex; gap:6px; margin-bottom:16px; }
@@ -452,12 +481,22 @@
 <div class="game-overlay hidden" id="pongOverlay">
   <div class="game-panel">
     <div class="game-panel-head">
-      <div class="game-panel-title">🏓 Pong <span class="game-panel-sub" id="pongStatus">Waiting for an opponent…</span></div>
+      <div class="game-panel-title">🏓 Pong <span class="game-panel-sub" id="pongStatus">Loading…</span></div>
       <button class="leave-link" id="pongClose">✕</button>
     </div>
-    <div class="game-score" id="pongScore">0 — 0</div>
-    <canvas id="pongCanvas" width="640" height="380"></canvas>
-    <div class="game-hint">Drag up/down on the table, or use ↑ / ↓</div>
+    <div class="game-lobby hidden" id="pongLobby">
+      <div class="lobby-cap">2-player table</div>
+      <div class="lobby-slots" id="pongLobbySlots"></div>
+      <div class="lobby-actions">
+        <button class="lobby-start-btn" id="pongLobbyStart">Start</button>
+        <div class="lobby-hint" id="pongLobbyHint"></div>
+      </div>
+    </div>
+    <div class="game-playarea hidden" id="pongPlayArea">
+      <div class="game-score" id="pongScore">0 — 0</div>
+      <canvas id="pongCanvas" width="640" height="380"></canvas>
+      <div class="game-hint">Drag up/down on the table, or use ↑ / ↓</div>
+    </div>
   </div>
 </div>
 
@@ -465,11 +504,23 @@
 <div class="game-overlay hidden" id="poolOverlay">
   <div class="game-panel">
     <div class="game-panel-head">
-      <div class="game-panel-title">🎱 Pool <span class="game-panel-sub" id="poolStatus">Setting up the table…</span></div>
+      <div class="game-panel-title">🎱 Pool <span class="game-panel-sub" id="poolStatus">Loading…</span></div>
       <button class="leave-link" id="poolClose">✕</button>
     </div>
-    <canvas id="poolCanvas" width="640" height="340"></canvas>
-    <div class="game-hint">Drag back from the cue ball to aim, release to shoot</div>
+    <div class="game-lobby hidden" id="poolLobby">
+      <div class="lobby-cap">Up to 4 players</div>
+      <div class="lobby-slots" id="poolLobbySlots"></div>
+      <div class="lobby-actions">
+        <button class="lobby-start-btn" id="poolLobbyStart">Start</button>
+        <div class="lobby-hint" id="poolLobbyHint"></div>
+      </div>
+    </div>
+    <div class="game-playarea hidden" id="poolPlayArea">
+      <div class="pool-turnbar" id="poolTurnbar"></div>
+      <div class="pool-wrap"><canvas id="poolCanvas" width="880" height="460"></canvas></div>
+      <div class="pool-power"><i id="poolPower"></i></div>
+      <div class="game-hint">Drag back from the cue ball to aim, release to shoot</div>
+    </div>
   </div>
 </div>
 
@@ -480,6 +531,15 @@
       <div class="game-panel-title">🎰 Casino <span class="game-panel-sub">Virtual chips only — no real money, ever</span></div>
       <button class="leave-link" id="casinoClose">✕</button>
     </div>
+    <div class="game-lobby hidden" id="casinoLobby">
+      <div class="lobby-cap">Up to 8 players at the table</div>
+      <div class="lobby-slots" id="casinoLobbySlots"></div>
+      <div class="lobby-actions">
+        <button class="lobby-start-btn" id="casinoLobbyStart">Start</button>
+        <div class="lobby-hint" id="casinoLobbyHint"></div>
+      </div>
+    </div>
+    <div class="game-playarea hidden" id="casinoPlayArea">
     <div class="casino-balance">🪙 <span id="casinoChips">—</span> chips</div>
     <div class="casino-tabs">
       <button class="casino-tab active" data-casino="flip">Coin Flip</button>
@@ -523,6 +583,7 @@
     </div>
 
     <div class="casino-feed" id="casinoFeed"></div>
+    </div>
   </div>
 </div>
 
@@ -1167,18 +1228,48 @@ $('leaveBtn2').addEventListener('click', leaveTable);
    All state lives under voiceCafe/{tableId}/games/{gameName}, a doc
    any signed-in user can read/write (same trust level as the WebRTC
    signaling docs already used for voice — these are just party games).
+
+   Every game now opens into a shared LOBBY first: joined players fill
+   numbered seats in real time, and any seated player can hit Start
+   (it reads "Start solo" when they're the only one seated). Seat caps:
+   Pool 4, Pong 2, everything else (Casino) 8.
    ============================================================ */
 let gameUnsub = null;
 let activeGameName = null;
+const GAME_META = {
+  pool:   { capacity: 4, label: 'Pool' },
+  pong:   { capacity: 2, label: 'Pong' },
+  casino: { capacity: 8, label: 'Casino' }
+};
+const lobbyData = { pool: null, pong: null, casino: null };
 
 function gameDocRef(name){
   return doc(db, 'voiceCafe', currentTable.id, 'games', name);
 }
+
 function closeAllGames(){
+  const leaving = activeGameName;
   ['pongOverlay','poolOverlay','casinoOverlay'].forEach(id=>$(id).classList.add('hidden'));
   if(gameUnsub){ gameUnsub(); gameUnsub = null; }
   stopPongLoop();
   activeGameName = null;
+  if(leaving) leaveLobbySeat(leaving).catch(()=>{});
+}
+
+async function leaveLobbySeat(name){
+  const data = lobbyData[name];
+  if(!data || data.status !== 'lobby' || !currentTable) return;
+  const players = (data.players || []).filter(u => u !== myUid);
+  const ref = gameDocRef(name);
+  try{
+    if(players.length === 0){
+      await updateDoc(ref, { status:'closed', players:[], updatedAt: serverTimestamp() });
+    } else {
+      const patch = { players, updatedAt: serverTimestamp() };
+      if(data.host === myUid) patch.host = players[0];
+      await updateDoc(ref, patch);
+    }
+  }catch(e){ console.warn('Could not leave lobby', e); }
 }
 
 $('gamesBtn').addEventListener('click', ()=> $('gamesModal').classList.remove('hidden'));
@@ -1197,14 +1288,114 @@ $('pongClose').addEventListener('click', closeAllGames);
 $('poolClose').addEventListener('click', closeAllGames);
 $('casinoClose').addEventListener('click', closeAllGames);
 
+/* ---------------- shared lobby ---------------- */
+async function enterLobby(name){
+  const meta = GAME_META[name];
+  const ref = gameDocRef(name);
+  const snap = await getDoc(ref);
+  const data = snap.exists() ? snap.data() : null;
+
+  if(!data || data.status === 'closed'){
+    await setDoc(ref, {
+      status:'lobby', capacity: meta.capacity, host: myUid,
+      players:[myUid], names:{ [myUid]: myName }, updatedAt: serverTimestamp()
+    });
+  } else if(data.status === 'lobby'){
+    if(!data.players.includes(myUid) && data.players.length < (data.capacity||meta.capacity)){
+      await updateDoc(ref, {
+        players: arrayUnion(myUid), [`names.${myUid}`]: myName, updatedAt: serverTimestamp()
+      });
+    }
+  }
+  // If status is already 'playing', we leave the doc alone — the per-game
+  // snapshot handler below decides whether we're a seated player or a
+  // spectator based on whether our uid is already in `players`.
+}
+
+function renderGameLobby(name, data){
+  const meta = GAME_META[name];
+  const cap = data.capacity || meta.capacity;
+  const players = data.players || [];
+  const slotsEl = $(name+'LobbySlots');
+  slotsEl.innerHTML = '';
+  for(let i=0; i<cap; i++){
+    const uid = players[i];
+    const slot = document.createElement('div');
+    if(uid){
+      const nm = (data.names && data.names[uid]) || 'Player';
+      slot.className = 'lobby-slot filled' + (uid===myUid ? ' you' : '');
+      slot.innerHTML = `<span class="lobby-avatar">${escapeHtml((nm[0]||'P').toUpperCase())}</span>`
+        + `<span class="lobby-name">${escapeHtml(nm)}${uid===myUid ? ' (you)' : ''}</span>`
+        + (uid===data.host ? '<span class="lobby-host-badge">Host</span>' : '');
+    } else {
+      slot.className = 'lobby-slot';
+      slot.innerHTML = `<span class="lobby-avatar empty">＋</span><span class="lobby-name muted">Open seat</span>`;
+    }
+    slotsEl.appendChild(slot);
+  }
+  const startBtn = $(name+'LobbyStart');
+  const hint = $(name+'LobbyHint');
+  const iAmIn = players.includes(myUid);
+  startBtn.style.display = iAmIn ? 'inline-flex' : 'none';
+  startBtn.textContent = players.length <= 1 ? 'Start solo' : `Start game (${players.length})`;
+  startBtn.disabled = !iAmIn;
+  if(!iAmIn){
+    hint.textContent = players.length >= cap ? `${meta.label} lobby is full — you're watching.` : 'Joining…';
+  } else if(players.length >= cap){
+    hint.textContent = 'Lobby full — ready to go!';
+  } else {
+    hint.textContent = `${players.length}/${cap} joined — invite more or start now.`;
+  }
+}
+
+function showLobbyView(name, data){
+  $(name+'Lobby').classList.remove('hidden');
+  const play = $(name+'PlayArea'); if(play) play.classList.add('hidden');
+  renderGameLobby(name, data);
+}
+function showPlayView(name){
+  $(name+'Lobby').classList.add('hidden');
+  const play = $(name+'PlayArea'); if(play) play.classList.remove('hidden');
+}
+
+$('poolLobbyStart').addEventListener('click', ()=> startLobby('pool'));
+$('pongLobbyStart').addEventListener('click', ()=> startLobby('pong'));
+$('casinoLobbyStart').addEventListener('click', ()=> startLobby('casino'));
+
+async function startLobby(name){
+  const data = lobbyData[name];
+  if(!data || !(data.players||[]).includes(myUid)) return;
+  const ref = gameDocRef(name);
+  try{
+    if(name==='pool'){
+      await updateDoc(ref, {
+        status:'playing', turnUid: data.players[0], balls: poolInitialBalls(),
+        shotFrames: null, shotSeq: 0, updatedAt: serverTimestamp()
+      });
+    } else if(name==='pong'){
+      const hostUid = data.players[0], guestUid = data.players[1] || null;
+      await updateDoc(ref, {
+        status:'playing', hostUid, hostName: data.names[hostUid],
+        guestUid, guestName: guestUid ? data.names[guestUid] : null,
+        ballX: PONG_W/2, ballY: PONG_H/2, ballVX: 4, ballVY: 3,
+        hostPaddleY: PONG_H/2, guestPaddleY: PONG_H/2, hostScore: 0, guestScore: 0,
+        updatedAt: serverTimestamp()
+      });
+    } else {
+      await updateDoc(ref, { status:'playing', updatedAt: serverTimestamp() });
+    }
+  }catch(e){ console.warn('Could not start '+name, e); toast("Couldn't start the game."); }
+}
+
 /* ---------------- PONG ----------------
-   Whoever opens it first becomes "host" and runs the authoritative
-   physics loop; the second player is "guest" and just sends their
-   paddle position. Both render from the synced Firestore doc, but the
-   host also renders its own paddle instantly (no round-trip lag). */
+   Whoever's seat #1 in the lobby becomes "host" and runs the authoritative
+   physics loop; seat #2 is "guest" and just sends their paddle position.
+   Both render from the synced Firestore doc, but the host also renders
+   its own paddle instantly (no round-trip lag). A host with no guest gets
+   solo wall practice — the guest paddle just sits centered. */
 const PONG_W = 640, PONG_H = 380, PADDLE_H = 70, PADDLE_W = 10, BALL_R = 7;
 let pongState = null;
-let pongRole = null; // 'host' | 'guest' | null
+let pongRole = null; // 'host' | 'guest' | 'spectator' | null
 let pongLoopId = null;
 let pongLastSync = 0;
 let myPaddleY = PONG_H/2;
@@ -1218,47 +1409,37 @@ async function openPong(){
   if(!currentTable) return;
   activeGameName = 'pong';
   $('pongOverlay').classList.remove('hidden');
-  $('pongStatus').textContent = 'Connecting…';
+  $('pongStatus').textContent = 'Loading…';
   const ref = gameDocRef('pong');
-  const snap = await getDoc(ref);
-  const data = snap.exists() ? snap.data() : null;
-  const fresh = data && data.updatedAt && data.updatedAt.toMillis && (Date.now() - data.updatedAt.toMillis() < 15000);
-
-  if(!fresh || !data || data.status !== 'playing' || data.hostUid === myUid){
-    pongRole = 'host';
-    await setDoc(ref, {
-      status: 'waiting', hostUid: myUid, hostName: myName, guestUid: null, guestName: null,
-      ballX: PONG_W/2, ballY: PONG_H/2, ballVX: 4, ballVY: 3,
-      hostPaddleY: PONG_H/2, guestPaddleY: PONG_H/2, hostScore: 0, guestScore: 0,
-      updatedAt: serverTimestamp()
-    });
-  } else if(!data.guestUid || data.guestUid === myUid){
-    pongRole = 'guest';
-    await updateDoc(ref, { guestUid: myUid, guestName: myName, status: 'playing', updatedAt: serverTimestamp() });
-  } else {
-    pongRole = 'spectator';
-  }
+  await enterLobby('pong');
+  setupPongInput(ref);
 
   if(gameUnsub) gameUnsub();
   gameUnsub = onSnapshot(ref, s=>{
     if(!s.exists()) return;
-    pongState = s.data();
-    if(pongRole === 'host' && pongState.guestUid && pongState.status === 'waiting'){
-      updateDoc(ref, { status:'playing' }).catch(()=>{});
+    const data = s.data();
+    lobbyData.pong = data;
+    if(data.status === 'lobby'){
+      $('pongStatus').textContent = 'In the lobby';
+      stopPongLoop();
+      showLobbyView('pong', data);
+      return;
     }
-    $('pongStatus').textContent = pongState.status === 'waiting'
-      ? 'Waiting for an opponent…'
-      : `${pongState.hostName||'Host'} vs ${pongState.guestName||'…'}`;
-    $('pongScore').textContent = `${pongState.hostScore||0} — ${pongState.guestScore||0}`;
+    showPlayView('pong');
+    pongRole = data.hostUid === myUid ? 'host' : (data.guestUid === myUid ? 'guest' : 'spectator');
+    pongState = data;
+    $('pongStatus').textContent = data.guestUid
+      ? `${data.hostName||'Host'} vs ${data.guestName||'…'}`
+      : `${data.hostName||'Host'} · solo practice`;
+    $('pongScore').textContent = `${data.hostScore||0} — ${data.guestScore||0}`;
     if(pongRole !== 'host') renderPong(pongState);
+    if(pongRole === 'host' && !pongLoopId) startPongHostLoop(ref);
   });
-
-  if(pongRole === 'host') startPongHostLoop(ref);
-  setupPongInput(ref);
 }
 
 function startPongHostLoop(ref){
-  let vx = 4, vy = 3, x = PONG_W/2, y = PONG_H/2;
+  let vx = pongState?.ballVX || 4, vy = pongState?.ballVY || 3;
+  let x = pongState?.ballX ?? PONG_W/2, y = pongState?.ballY ?? PONG_H/2;
   function tick(){
     if(activeGameName !== 'pong' || pongRole !== 'host'){ pongLoopId=null; return; }
     if(pongState && pongState.status === 'playing'){
@@ -1318,31 +1499,52 @@ function renderPong(s){
 }
 
 /* ---------------- POOL ----------------
-   Turn-based. The shooter simulates the shot locally (deterministic,
-   fixed timestep) and, once every ball has stopped, writes the final
-   resting positions to Firestore as the source of truth. Everyone else
-   just tweens toward whatever the doc says — no need to keep every
-   client's physics frame-perfectly in sync. */
-const POOL_W = 640, POOL_H = 340, POOL_R = 9;
-const POOL_POCKETS = [[14,14],[POOL_W/2,10],[POOL_W-14,14],[14,POOL_H-14],[POOL_W/2,POOL_H-10],[POOL_W-14,POOL_H-14]];
+   Turn-based. The shooter simulates the entire shot locally with a small,
+   deterministic fixed-step physics engine (proper cushion + ball-on-ball
+   impulse response, rolling friction) and records a thinned trajectory of
+   the whole shot. That trajectory — not just the final resting spots —
+   gets written to Firestore, so every client (shooter included) *replays
+   the real shot*, cue ball bounces and all, instead of a straight-line
+   tween to the result. */
+const POOL_W = 880, POOL_H = 460;
+const POOL_PLAY_L = 46, POOL_PLAY_T = 46, POOL_PLAY_R = POOL_W-46, POOL_PLAY_B = POOL_H-46;
+const POOL_R = 11;
+const POOL_POCKET_R = 22;
+const POOL_MAX_POWER = 15.5;
+const POOL_CUSHION_REST = 0.85;
+const POOL_BALL_REST = 0.96;
+const POOL_ROLL_DECEL = 0.22;
+const POOL_STOP_SPEED = 0.05;
+const POOL_POCKETS = [
+  [POOL_PLAY_L, POOL_PLAY_T], [POOL_W/2, POOL_PLAY_T-2], [POOL_PLAY_R, POOL_PLAY_T],
+  [POOL_PLAY_L, POOL_PLAY_B], [POOL_W/2, POOL_PLAY_B+2], [POOL_PLAY_R, POOL_PLAY_B]
+];
+const POOL_BALL_COLORS = [
+  '#f6cf45','#356fd3','#d743cf','#e64b3b','#32bd68','#7e55d9','#ed8a22',
+  '#111317','#f6cf45','#356fd3','#d743cf','#e64b3b','#32bd68','#7e55d9','#ed8a22'
+];
+
 let poolState = null;
 let poolMyIndex = -1;
 let poolAiming = null;
 let poolRenderPositions = null;
+let poolSeenFirst = false;
+let poolPlayedSeq = -1;
 
 function poolInitialBalls(){
-  const balls = { cue: { x: 160, y: POOL_H/2, potted:false } };
-  const startX = POOL_W - 160, startY = POOL_H/2;
-  let id = 1, row = 0;
-  const rowSpacing = POOL_R*2*0.87;
-  for(let r=0; r<5; r++){
-    for(let c=0; c<=r; c++){
-      balls['b'+id] = {
-        x: startX + r*rowSpacing,
-        y: startY - r*POOL_R + c*POOL_R*2,
-        potted:false
+  const balls = { cue: { x: POOL_PLAY_L+160, y: POOL_H/2, type:'cue', potted:false } };
+  const cx = POOL_PLAY_R-190, cy = POOL_H/2;
+  const spacing = POOL_R*2*0.985;
+  let n = 1;
+  for(let row=0; row<5; row++){
+    for(let c=0; c<=row; c++){
+      balls['b'+n] = {
+        x: cx + row*spacing*0.87,
+        y: cy + (c-row/2)*spacing,
+        type: n===8 ? 'eight' : 'ball', num:n, striped: n>8,
+        color: POOL_BALL_COLORS[n-1], potted:false
       };
-      id++;
+      n++;
     }
   }
   return balls;
@@ -1352,49 +1554,67 @@ async function openPool(){
   if(!currentTable) return;
   activeGameName = 'pool';
   $('poolOverlay').classList.remove('hidden');
-  $('poolStatus').textContent = 'Setting up…';
+  $('poolStatus').textContent = 'Loading…';
   const ref = gameDocRef('pool');
-  const snap = await getDoc(ref);
-  const data = snap.exists() ? snap.data() : null;
+  await enterLobby('pool');
 
-  if(!data || data.status !== 'playing'){
-    await setDoc(ref, {
-      status:'playing', players:[myUid], names:{[myUid]:myName},
-      turnUid: myUid, balls: poolInitialBalls(), updatedAt: serverTimestamp()
-    });
-  } else if(!data.players.includes(myUid)){
-    await updateDoc(ref, { players: arrayUnion(myUid), [`names.${myUid}`]: myName });
-  }
+  poolRenderPositions = null;
+  poolSeenFirst = false;
+  poolPlayedSeq = -1;
+  setupPoolInput(ref);
 
   if(gameUnsub) gameUnsub();
   gameUnsub = onSnapshot(ref, s=>{
     if(!s.exists()) return;
-    const prev = poolState;
-    poolState = s.data();
-    poolMyIndex = poolState.players.indexOf(myUid);
-    const whoseTurn = poolState.names?.[poolState.turnUid] || 'someone';
-    $('poolStatus').textContent = poolState.turnUid === myUid ? 'Your shot' : `${whoseTurn}'s shot`;
-    if(!poolRenderPositions) poolRenderPositions = { ...poolState.balls };
-    tweenPoolTo(poolState.balls);
+    const data = s.data();
+    lobbyData.pool = data;
+    if(data.status === 'lobby'){
+      $('poolStatus').textContent = 'In the lobby';
+      showLobbyView('pool', data);
+      return;
+    }
+    showPlayView('pool');
+    poolState = data;
+    poolMyIndex = (data.players||[]).indexOf(myUid);
+    const whoseTurn = (data.names && data.names[data.turnUid]) || 'someone';
+    $('poolStatus').textContent = data.turnUid === myUid ? 'Your shot' : `${whoseTurn}'s shot`;
+    renderPoolTurnbar(data);
+
+    if(!poolSeenFirst){
+      poolSeenFirst = true;
+      poolPlayedSeq = data.shotSeq || 0;
+      poolRenderPositions = { ...data.balls };
+      renderPool();
+    } else if(data.shotFrames && data.shotSeq !== poolPlayedSeq){
+      poolPlayedSeq = data.shotSeq;
+      playPoolFrames(data.shotFrames, data.balls);
+    } else {
+      poolRenderPositions = { ...data.balls };
+      renderPool();
+    }
   });
-  poolRenderPositions = null;
-  setupPoolInput(ref);
 }
 
-function tweenPoolTo(target){
-  const start = { ...poolRenderPositions };
-  const t0 = performance.now();
+function renderPoolTurnbar(data){
+  const wrap = $('poolTurnbar'); if(!wrap) return;
+  const players = data.players || [];
+  wrap.innerHTML = players.map(uid=>{
+    const nm = (data.names && data.names[uid]) || 'Player';
+    const active = uid === data.turnUid;
+    return `<span class="pool-turn-chip${active?' active':''}">${escapeHtml(nm)}${uid===myUid?' (you)':''}</span>`;
+  }).join('');
+}
+
+function playPoolFrames(frames, finalBalls){
+  if(!frames || !frames.length){ poolRenderPositions = { ...finalBalls }; renderPool(); return; }
+  let i = 0;
   function step(){
     if(activeGameName !== 'pool') return;
-    const t = Math.min(1, (performance.now()-t0)/500);
-    const cur = {};
-    Object.keys(target).forEach(id=>{
-      const a = start[id] || target[id], b = target[id];
-      cur[id] = { x: a.x+(b.x-a.x)*t, y: a.y+(b.y-a.y)*t, potted: b.potted };
-    });
-    poolRenderPositions = cur;
+    poolRenderPositions = frames[i];
     renderPool();
-    if(t < 1) requestAnimationFrame(step);
+    i++;
+    if(i < frames.length){ setTimeout(()=> requestAnimationFrame(step), 16); }
+    else { poolRenderPositions = { ...finalBalls }; renderPool(); }
   }
   requestAnimationFrame(step);
 }
@@ -1404,21 +1624,29 @@ function setupPoolInput(ref){
   function pos(e){
     const rect = canvas.getBoundingClientRect();
     const scale = POOL_W/rect.width;
-    const p = e.touches ? e.touches[0] : e;
-    return { x:(p.clientX-rect.left)*scale, y:(p.clientY-rect.top)*scale };
+    return { x:(e.clientX-rect.left)*scale, y:(e.clientY-rect.top)*scale };
   }
-  canvas.onmousedown = e=>{
+  function updatePowerBar(){
+    const bar = $('poolPower');
+    if(!poolAiming || !poolAiming.now){ bar.style.width = '0%'; return; }
+    const dx = poolAiming.start.x-poolAiming.now.x, dy = poolAiming.start.y-poolAiming.now.y;
+    const dist = Math.min(150, Math.hypot(dx,dy));
+    bar.style.width = (dist/150*100)+'%';
+  }
+  canvas.onpointerdown = e=>{
     if(!poolState || poolState.turnUid !== myUid) return;
+    const cue = poolRenderPositions && poolRenderPositions.cue;
+    if(!cue || cue.potted) return;
     poolAiming = { start: pos(e) };
+    try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
   };
-  canvas.onmousemove = e=>{ if(poolAiming) poolAiming.now = pos(e); renderPool(); };
-  window.addEventListener('mouseup', ()=>{
-    if(activeGameName==='pool' && poolAiming && poolAiming.now) takePoolShot(ref);
-    poolAiming = null;
-  });
-  canvas.ontouchstart = e=>{ if(!poolState||poolState.turnUid!==myUid) return; poolAiming = { start: pos(e) }; e.preventDefault(); };
-  canvas.ontouchmove = e=>{ if(poolAiming){ poolAiming.now = pos(e); renderPool(); } e.preventDefault(); };
-  canvas.ontouchend = ()=>{ if(poolAiming && poolAiming.now) takePoolShot(ref); poolAiming = null; };
+  canvas.onpointermove = e=>{ if(poolAiming){ poolAiming.now = pos(e); updatePowerBar(); renderPool(); } };
+  canvas.onpointerup = e=>{
+    if(poolAiming && poolAiming.now) takePoolShot(ref);
+    poolAiming = null; updatePowerBar();
+    try{ canvas.releasePointerCapture(e.pointerId); }catch(_){}
+  };
+  canvas.onpointercancel = ()=>{ poolAiming=null; updatePowerBar(); };
 }
 
 function takePoolShot(ref){
@@ -1426,82 +1654,204 @@ function takePoolShot(ref){
   if(!cue || cue.potted) return;
   const dx = poolAiming.start.x - poolAiming.now.x;
   const dy = poolAiming.start.y - poolAiming.now.y;
-  const dist = Math.min(120, Math.hypot(dx,dy));
+  const dist = Math.min(150, Math.hypot(dx,dy));
   if(dist < 8) return;
-  const power = dist/120 * 14;
+  const power = (dist/150) * POOL_MAX_POWER;
   const angle = Math.atan2(dy,dx);
   const balls = {};
   Object.entries(poolState.balls).forEach(([id,b])=> balls[id] = { ...b, vx:0, vy:0 });
   balls.cue.vx = Math.cos(angle)*power;
   balls.cue.vy = Math.sin(angle)*power;
-  const result = simulatePoolShot(balls);
+  const { final, frames } = simulatePoolShot(balls);
   const players = poolState.players;
   const curIdx = players.indexOf(myUid);
-  const nextUid = players[(curIdx+1) % players.length] || myUid;
-  const finalBalls = {};
-  Object.entries(result).forEach(([id,b])=> finalBalls[id] = { x:b.x, y:b.y, potted:b.potted });
-  updateDoc(ref, { balls: finalBalls, turnUid: nextUid, updatedAt: serverTimestamp() }).catch(()=>{});
+  const nextUid = players[(curIdx+1) % Math.max(1,players.length)] || myUid;
+  updateDoc(ref, {
+    balls: final, shotFrames: frames, shotSeq: (poolState.shotSeq||0)+1, shotBy: myUid,
+    turnUid: nextUid, updatedAt: serverTimestamp()
+  }).catch(()=>{});
+  $('poolPower').style.width = '0%';
+}
+
+function round2(n){ return Math.round(n*100)/100; }
+
+function poolStepPhysics(balls){
+  let moving = false;
+  const ids = Object.keys(balls);
+  ids.forEach(id=>{
+    const b = balls[id];
+    if(b.potted) return;
+    b.x += b.vx; b.y += b.vy;
+    const spd = Math.hypot(b.vx, b.vy);
+    if(spd > POOL_STOP_SPEED){
+      const next = Math.max(0, spd - POOL_ROLL_DECEL);
+      const k = next/spd; b.vx *= k; b.vy *= k;
+      moving = true;
+    } else { b.vx = 0; b.vy = 0; }
+
+    for(const [px,py] of POOL_POCKETS){
+      if(Math.hypot(b.x-px, b.y-py) < POOL_POCKET_R){
+        b.potted = true; b.vx = 0; b.vy = 0;
+        if(id === 'cue'){ b.x = POOL_PLAY_L+160; b.y = POOL_H/2; b.potted = false; }
+        break;
+      }
+    }
+    if(b.potted) return;
+    if(b.x < POOL_PLAY_L+POOL_R){ b.x = POOL_PLAY_L+POOL_R; b.vx = Math.abs(b.vx)*POOL_CUSHION_REST; moving=true; }
+    if(b.x > POOL_PLAY_R-POOL_R){ b.x = POOL_PLAY_R-POOL_R; b.vx = -Math.abs(b.vx)*POOL_CUSHION_REST; moving=true; }
+    if(b.y < POOL_PLAY_T+POOL_R){ b.y = POOL_PLAY_T+POOL_R; b.vy = Math.abs(b.vy)*POOL_CUSHION_REST; moving=true; }
+    if(b.y > POOL_PLAY_B-POOL_R){ b.y = POOL_PLAY_B-POOL_R; b.vy = -Math.abs(b.vy)*POOL_CUSHION_REST; moving=true; }
+  });
+
+  for(let i=0;i<ids.length;i++) for(let j=i+1;j<ids.length;j++){
+    const a = balls[ids[i]], c = balls[ids[j]];
+    if(a.potted || c.potted) continue;
+    const dx = c.x-a.x, dy = c.y-a.y, d = Math.hypot(dx,dy);
+    if(d > 0 && d < POOL_R*2){
+      const nx = dx/d, ny = dy/d, overlap = POOL_R*2-d;
+      a.x -= nx*overlap*0.501; a.y -= ny*overlap*0.501;
+      c.x += nx*overlap*0.501; c.y += ny*overlap*0.501;
+      const rel = (c.vx-a.vx)*nx + (c.vy-a.vy)*ny;
+      if(rel < 0){
+        const impulse = -(1+POOL_BALL_REST)*rel/2;
+        a.vx -= impulse*nx; a.vy -= impulse*ny;
+        c.vx += impulse*nx; c.vy += impulse*ny;
+        moving = true;
+      }
+    }
+  }
+  return moving;
 }
 
 function simulatePoolShot(balls){
-  const ids = Object.keys(balls);
-  for(let step=0; step<400; step++){
-    let moving = false;
-    ids.forEach(id=>{
-      const b = balls[id];
-      if(b.potted) return;
-      b.x += b.vx; b.y += b.vy;
-      b.vx *= 0.985; b.vy *= 0.985;
-      if(Math.hypot(b.vx,b.vy) < 0.05){ b.vx=0; b.vy=0; } else moving = true;
-      if(b.x < POOL_R){ b.x=POOL_R; b.vx=-b.vx; } if(b.x > POOL_W-POOL_R){ b.x=POOL_W-POOL_R; b.vx=-b.vx; }
-      if(b.y < POOL_R){ b.y=POOL_R; b.vy=-b.vy; } if(b.y > POOL_H-POOL_R){ b.y=POOL_H-POOL_R; b.vy=-b.vy; }
-      POOL_POCKETS.forEach(([px,py])=>{
-        if(!b.potted && Math.hypot(b.x-px, b.y-py) < 16){ b.potted = true; b.vx=0; b.vy=0;
-          if(id==='cue'){ b.x=160; b.y=POOL_H/2; b.potted=false; }
-        }
-      });
-    });
-    for(let i=0;i<ids.length;i++){
-      for(let j=i+1;j<ids.length;j++){
-        const a=balls[ids[i]], c=balls[ids[j]];
-        if(a.potted||c.potted) continue;
-        const dx=c.x-a.x, dy=c.y-a.y, d=Math.hypot(dx,dy);
-        if(d < POOL_R*2 && d > 0){
-          const nx=dx/d, ny=dy/d, overlap=POOL_R*2-d;
-          a.x -= nx*overlap/2; a.y -= ny*overlap/2; c.x += nx*overlap/2; c.y += ny*overlap/2;
-          const avx=a.vx, avy=a.vy;
-          a.vx = c.vx; a.vy = c.vy; c.vx = avx; c.vy = avy;
-          moving = true;
-        }
-      }
+  const frames = [];
+  let steps = 0;
+  const MAX_STEPS = 600;
+  while(steps < MAX_STEPS){
+    const moving = poolStepPhysics(balls);
+    steps++;
+    if(steps % 2 === 0 || !moving){
+      const snap = {};
+      Object.entries(balls).forEach(([id,b])=> snap[id] = { x: round2(b.x), y: round2(b.y), potted: !!b.potted });
+      frames.push(snap);
     }
     if(!moving) break;
   }
-  return balls;
+  const final = {};
+  Object.entries(balls).forEach(([id,b])=> final[id] = { x: round2(b.x), y: round2(b.y), potted: !!b.potted, type:b.type, num:b.num, striped:b.striped, color:b.color });
+  return { final, frames };
 }
 
 function renderPool(){
   const canvas = $('poolCanvas');
+  if(!canvas) return;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#0f3d24'; ctx.fillRect(0,0,POOL_W,POOL_H);
-  ctx.strokeStyle = 'rgba(255,255,255,.08)'; ctx.lineWidth = 10;
-  ctx.strokeRect(5,5,POOL_W-10,POOL_H-10);
-  ctx.fillStyle = '#111';
-  POOL_POCKETS.forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x,y,13,0,Math.PI*2); ctx.fill(); });
-  if(!poolRenderPositions) return;
-  Object.entries(poolRenderPositions).forEach(([id,b])=>{
-    if(b.potted) return;
-    ctx.beginPath(); ctx.arc(b.x,b.y,POOL_R,0,Math.PI*2);
-    ctx.fillStyle = id==='cue' ? '#f4f0e6' : `hsl(${(parseInt(id.replace('b',''),10)||0)*37 % 360},70%,55%)`;
-    ctx.fill(); ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.lineWidth=1.5; ctx.stroke();
-  });
-  if(poolAiming && poolAiming.now && poolRenderPositions.cue && !poolRenderPositions.cue.potted){
-    const cue = poolRenderPositions.cue;
-    const dx = cue.x - (poolAiming.start.x - poolAiming.now.x);
-    const dy = cue.y - (poolAiming.start.y - poolAiming.now.y);
-    ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.setLineDash([4,5]); ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(cue.x,cue.y); ctx.lineTo(dx,dy); ctx.stroke(); ctx.setLineDash([]);
+  ctx.clearRect(0,0,POOL_W,POOL_H);
+  poolDrawTable(ctx);
+  poolDrawAimAndCue(ctx);
+  if(poolRenderPositions){
+    Object.entries(poolRenderPositions).forEach(([id,b])=>{
+      if(b.potted) return;
+      poolDrawBall(ctx, id, b);
+    });
   }
+}
+
+function poolDrawTable(ctx){
+  ctx.fillStyle = '#20130a'; ctx.fillRect(0,0,POOL_W,POOL_H);
+  ctx.fillStyle = '#4d2c16'; ctx.fillRect(10,10,POOL_W-20,POOL_H-20);
+  ctx.fillStyle = '#7a4a24'; ctx.fillRect(22,22,POOL_W-44,POOL_H-44);
+  const bg = ctx.createLinearGradient(0,0,0,POOL_H);
+  bg.addColorStop(0,'#0a4a30'); bg.addColorStop(.5,'#0d6b41'); bg.addColorStop(1,'#0a4229');
+  ctx.fillStyle = bg;
+  ctx.fillRect(POOL_PLAY_L,POOL_PLAY_T,POOL_PLAY_R-POOL_PLAY_L,POOL_PLAY_B-POOL_PLAY_T);
+  const glow = ctx.createRadialGradient(POOL_W/2,POOL_H*0.4,60,POOL_W/2,POOL_H/2,POOL_W*0.55);
+  glow.addColorStop(0,'rgba(120,230,170,.12)'); glow.addColorStop(1,'rgba(0,0,0,.2)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(POOL_PLAY_L,POOL_PLAY_T,POOL_PLAY_R-POOL_PLAY_L,POOL_PLAY_B-POOL_PLAY_T);
+  ctx.strokeStyle = '#c69a5c'; ctx.lineWidth = 2;
+  ctx.strokeRect(POOL_PLAY_L,POOL_PLAY_T,POOL_PLAY_R-POOL_PLAY_L,POOL_PLAY_B-POOL_PLAY_T);
+  POOL_POCKETS.forEach(([x,y])=>{
+    const g = ctx.createRadialGradient(x-4,y-4,2,x,y,POOL_POCKET_R+4);
+    g.addColorStop(0,'#000'); g.addColorStop(.75,'#050a07'); g.addColorStop(1,'#182018');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x,y,POOL_POCKET_R+4,0,Math.PI*2); ctx.fill();
+  });
+  ctx.fillStyle = '#e0bb70';
+  [0.18,0.34,0.5,0.66,0.82].forEach(f=>{
+    const x = POOL_PLAY_L + (POOL_PLAY_R-POOL_PLAY_L)*f;
+    [16, POOL_H-16].forEach(y=>{
+      ctx.beginPath(); ctx.moveTo(x,y-4); ctx.lineTo(x+4,y); ctx.lineTo(x,y+4); ctx.lineTo(x-4,y); ctx.closePath(); ctx.fill();
+    });
+  });
+  [0.25,0.5,0.75].forEach(f=>{
+    const y = POOL_PLAY_T + (POOL_PLAY_B-POOL_PLAY_T)*f;
+    [16, POOL_W-16].forEach(x=>{
+      ctx.beginPath(); ctx.moveTo(x-4,y); ctx.lineTo(x,y+4); ctx.lineTo(x+4,y); ctx.lineTo(x,y-4); ctx.closePath(); ctx.fill();
+    });
+  });
+}
+
+function poolShade(hex,f){
+  const n = parseInt(hex.slice(1),16);
+  const r = Math.max(0,Math.min(255,Math.round((n>>16)*f)));
+  const g = Math.max(0,Math.min(255,Math.round(((n>>8)&255)*f)));
+  const b = Math.max(0,Math.min(255,Math.round((n&255)*f)));
+  return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+function poolDrawBall(ctx, id, b){
+  const shadow = ctx.createRadialGradient(b.x+3,b.y+4,1,b.x+3,b.y+4,POOL_R+5);
+  shadow.addColorStop(0,'rgba(0,0,0,.4)'); shadow.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = shadow; ctx.beginPath(); ctx.arc(b.x+3,b.y+4,POOL_R+5,0,Math.PI*2); ctx.fill();
+
+  const isCue = id === 'cue';
+  const color = isCue ? '#f4f0e6' : (b.color || POOL_BALL_COLORS[((b.num||1)-1) % POOL_BALL_COLORS.length]);
+  const grad = ctx.createRadialGradient(b.x-4,b.y-5,1,b.x,b.y,POOL_R);
+  grad.addColorStop(0,'#fff'); grad.addColorStop(.15, isCue ? '#fff' : color); grad.addColorStop(1, isCue ? '#d9d5ca' : poolShade(color,.55));
+  ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(b.x,b.y,POOL_R,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.lineWidth = 1; ctx.stroke();
+
+  if(!isCue && b.striped){
+    ctx.save(); ctx.beginPath(); ctx.arc(b.x,b.y,POOL_R-.5,0,Math.PI*2); ctx.clip();
+    ctx.fillStyle = '#f4f0e6'; ctx.fillRect(b.x-POOL_R,b.y-3.8,POOL_R*2,7.6); ctx.restore();
+  }
+  if(!isCue && b.num){
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x,b.y,4.6,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#151515'; ctx.font = 'bold 6.5px Inter,sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(b.num), b.x, b.y+.3);
+  }
+}
+
+function poolDrawAimAndCue(ctx){
+  if(!poolAiming || !poolAiming.now || !poolRenderPositions) return;
+  const cue = poolRenderPositions.cue;
+  if(!cue || cue.potted) return;
+  const dx = cue.x-poolAiming.now.x, dy = cue.y-poolAiming.now.y;
+  const len = Math.hypot(dx,dy) || 1;
+  const nx = dx/len, ny = dy/len;
+  const pull = Math.min(150, len);
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 2; ctx.setLineDash([9,8]);
+  ctx.beginPath(); ctx.moveTo(cue.x,cue.y); ctx.lineTo(cue.x+nx*520,cue.y+ny*520); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = 'rgba(255,222,140,.35)'; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(cue.x,cue.y); ctx.lineTo(cue.x+nx*120,cue.y+ny*120); ctx.stroke();
+
+  const gap = 12 + pull*1.4;
+  const tipX = cue.x - nx*gap, tipY = cue.y - ny*gap;
+  const buttX = cue.x - nx*(gap+230), buttY = cue.y - ny*(gap+230);
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#4b2917'; ctx.lineWidth = 11;
+  ctx.beginPath(); ctx.moveTo(buttX,buttY); ctx.lineTo(tipX,tipY); ctx.stroke();
+  const wood = ctx.createLinearGradient(buttX,buttY,tipX,tipY);
+  wood.addColorStop(0,'#7b4525'); wood.addColorStop(.72,'#d9ad6a'); wood.addColorStop(1,'#f2e0bc');
+  ctx.strokeStyle = wood; ctx.lineWidth = 7;
+  ctx.beginPath(); ctx.moveTo(buttX,buttY); ctx.lineTo(tipX,tipY); ctx.stroke();
+  ctx.strokeStyle = '#dcdde3'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(tipX,tipY); ctx.lineTo(cue.x-nx*(gap-3),cue.y-ny*(gap-3)); ctx.stroke();
+  ctx.restore();
 }
 
 /* ---------------- CASINO ----------------
@@ -1551,6 +1901,16 @@ async function placeBet(amount, resolve){
 async function openCasino(){
   activeGameName = 'casino';
   $('casinoOverlay').classList.remove('hidden');
+  const ref = gameDocRef('casino');
+  await enterLobby('casino');
+  if(gameUnsub) gameUnsub();
+  gameUnsub = onSnapshot(ref, s=>{
+    if(!s.exists()) return;
+    const data = s.data();
+    lobbyData.casino = data;
+    if(data.status === 'lobby'){ showLobbyView('casino', data); return; }
+    showPlayView('casino');
+  });
   setChipsDisplay(await getMyChips());
   if(currentTable){
     if(casinoFeedUnsub) casinoFeedUnsub();
@@ -1646,6 +2006,5 @@ window.addEventListener('beforeunload', ()=>{
   }
 });
 </script>
-<script src="./pool-multi.js"></script>
 </body>
 </html>
